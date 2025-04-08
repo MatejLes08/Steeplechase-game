@@ -1,5 +1,6 @@
 import time
 import random
+import terrain
 
 class Game:
     def __init__(self, update_ui_callback, update_record_callback):
@@ -17,7 +18,7 @@ class Game:
         self.update_ui = update_ui_callback
         self.update_record = update_record_callback
 
-        self.terrain = Terrain()
+        self.terrain = terrain()
 
 
     def start_race(self):
