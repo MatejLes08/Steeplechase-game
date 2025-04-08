@@ -65,10 +65,10 @@ class Game:
             self.sila = self.kon_vydrz - self.zataz
             self.prejdene_metre += self.kon_rychlost * zrychlenie / 3.6 * 0.01
             ostava = round(self.draha - self.prejdene_metre)
+            
+            cas_str = f"{self.minuty}:{int(self.cas):02d}"
+            self.update_ui(int(self.kon_rychlost * zrychlenie), ostava, int(self.sila), cas_str)
 
-            self.update_ui(int(self.kon_rychlost * zrychlenie), ostava, int(self.sila))
-
-        cas_str = f"{self.minuty}:{int(self.cas):02d}"
         Utils.ulozit_cas(cas_str)
         self.update_record(self.najnizsi_cas())
 
