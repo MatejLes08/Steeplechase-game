@@ -10,10 +10,12 @@ def main():
     terrain = Terrain()
 
     # Funkcia na aktualizovanie UI počas pretekov
-    def update_ui(rychlost, ostava, sila):
+    def update_ui(rychlost, ostava, sila, cas_str):
         ui.rychlost.set(rychlost)
         ui.neprejdenych.set(ostava)
         ui.energia.set(sila)
+        ui.stopky.set(cas_str)
+
         oddych_cis, zrychlenie, narocnost, bonus, typ_terenu = terrain.zisti_pasmo(ostava)
         ui.aktualna_draha.set(typ_terenu)
         ui.aktualizuj()
