@@ -1,6 +1,7 @@
 import time
 import random
 import terrain
+from Utils import Utils  
 
 class Game:
     def __init__(self, update_ui_callback, update_record_callback):
@@ -68,6 +69,6 @@ class Game:
             self.update_ui(int(self.kon_rychlost * zrychlenie), ostava, int(self.sila))
 
         cas_str = f"{self.minuty}:{int(self.cas):02d}"
-        self.ulozit_cas(cas_str)
+        Utils.ulozit_cas(cas_str)
         self.update_record(self.najnizsi_cas())
 
