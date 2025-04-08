@@ -40,7 +40,7 @@ class Game:
                 self.cas -= 60
                 self.minuty += 1
 
-            oddých_cis, zrychlenie, narocnost, bonus, typ_terenu = self.terrain.zisti_pasmo(ostava)
+            oddych_cis, zrychlenie, narocnost, bonus, typ_terenu = self.terrain.zisti_pasmo(ostava)
 
             if self.kon_rychlost == 0:
                 if self.sila < 100:
