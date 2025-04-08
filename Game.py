@@ -29,7 +29,6 @@ class Game:
         self.sila = 100
         self.kon_rychlost = 0
 
-        mnp, msp, n1, n2, n3 = self.generacia_terenu()
         ostava = self.draha
 
         while self.prejdene_metre < self.draha:
