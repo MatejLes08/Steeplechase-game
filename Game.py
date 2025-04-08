@@ -18,7 +18,7 @@ class Game:
         self.update_ui = update_ui_callback
         self.update_record = update_record_callback
 
-        self.terrain = terrain()
+        self.terrain = terrain.Terrain()
 
 
     def start_race(self):
