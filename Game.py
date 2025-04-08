@@ -17,23 +17,6 @@ class Game:
         self.update_ui = update_ui_callback
         self.update_record = update_record_callback
 
-    def zisti_pasmo(self, ostava, mnp, msp, n1, n2, n3):
-        oddych_cis = 0.01
-        zrychlenie = 1
-        narocnost = 7000
-        bonus = 1
- 
-        if mnp >= ostava >= mnp - 300:
-            narocnost = 5000
-            oddych_cis = 0.005
-
-        elif msp >= ostava >= msp - 400:
-            zrychlenie = 1.25
-
-        if any(n >= ostava >= n - 20 for n in [n1, n2, n3]):
-            bonus = 10
-
-        return oddych_cis, zrychlenie, narocnost, bonus
 
     def start_race(self):
         self.prejdene_metre = 0
