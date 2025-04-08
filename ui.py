@@ -1,5 +1,5 @@
 import tkinter
-import Utils
+from Utils import Utils
 
 class UI:
     def __init__(self, pridaj_callback, spomal_callback, start_callback, koniec_callback):
