@@ -17,6 +17,8 @@ class Game:
         self.update_ui = update_ui_callback
         self.update_record = update_record_callback
 
+        self.terrain = Terrain()
+
 
     def start_race(self):
         self.prejdene_metre = 0
