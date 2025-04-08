@@ -138,7 +138,6 @@ def tik():
             zataz += kon_rychlost / (narocnost - 3000)
 
         sila = kon_vydrz - zataz
-        print(zataz)
 
         prejdene_metre += kon_rychlost*zrychlenie / 3.6 * 0.01
         ostava = round(draha - prejdene_metre)
