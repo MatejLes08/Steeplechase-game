@@ -1,4 +1,5 @@
 import tkinter
+import Utils
 
 class UI:
     def __init__(self, pridaj_callback, spomal_callback, start_callback, koniec_callback):
@@ -11,7 +12,7 @@ class UI:
         self.neprejdenych = tkinter.IntVar()
         self.aktualna_draha = tkinter.StringVar()
         self.stopky = tkinter.StringVar()
-        self.rekord = tkinter.StringVar(value=najnizsi_cas())
+        self.rekord = tkinter.StringVar(value=Utils.najnizsi_cas())
 
         # Štítky a políčka
         tkinter.Label(self.okno, text="Aktulna rýchlosť:", bg="#FFC66F", width=20).grid(row=0, column=0)
