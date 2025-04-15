@@ -25,6 +25,12 @@ class Game:
         self.bezi = False 
 
     def start_race(self):
+        self.prejdene_metre = 0
+        self.cas = 0
+        self.minuty = 0
+        self.zataz = 0
+        self.sila = 100
+        self.kon_rychlost = 0
         self.bezi = True 
 
         ostava = self.DRAHA
