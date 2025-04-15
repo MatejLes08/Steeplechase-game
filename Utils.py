@@ -1,16 +1,21 @@
 class Utils:
     @staticmethod
-    def cas_na_sekundy(cas_str):
-        minuty, sekundy = cas_str.split(":")
-        sekundy_celkom = int(minuty) * 60 + int(sekundy)
-        return sekundy_celkom
+    def cas_na_stotiny(cas_str):
+        """Prevod formátu MM:SS:SS (minúty, sekundy, stotiny) na počet stotín"""
+        try:
+            minuty, sekundy, stotiny = cas_str.split(":")
+            return int(minuty) * 6000 + int(sekundy) * 100 + int(stotiny)
+        except ValueError:
+            return 0
 
     @staticmethod
-    def sekundy_na_cas(sekundy):
-        minuty = sekundy // 60
-        sekundy = sekundy % 60
-        cas_str = f"{minuty}:{sekundy:02d}"
-        return cas_str
+    def stotiny_na_cas(stotiny):
+        """Prevod stotín na formát MM:SS:SS (napr. 1:09:84)"""
+        minuty = stotiny // 6000
+        zvysok = stotiny % 6000
+        sekundy = zvysok // 100
+        stotiny = zvysok % 100
+        return f"{minuty}:{sekundy:02d}:{stotiny:02d}"
 
     @staticmethod
     def ulozit_cas(cas, nazov_suboru="casy.txt"):
@@ -26,10 +31,10 @@ class Utils:
             return "N/A"
 
         casy = [cas.strip() for cas in casy if ":" in cas]
-        casy_v_sekundach = [Utils.cas_na_sekundy(cas) for cas in casy]
+        casy_v_stotinach = [Utils.cas_na_stotiny(cas) for cas in casy]
 
-        if casy_v_sekundach:
-            najnizsi_cas_v_sekundach = min(casy_v_sekundach)
-            return Utils.sekundy_na_cas(najnizsi_cas_v_sekundach)
+        if casy_v_stotinach:
+            najnizsi = min(casy_v_stotinach)
+            return Utils.stotiny_na_cas(najnizsi)
         else:
             return "N/A"
