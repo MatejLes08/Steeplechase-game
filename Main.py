@@ -7,7 +7,9 @@ from ui import Utils
 
 def main():
     horse = Horse()
-    terrain = Terrain()
+
+    # Vytvorenie objektu Game
+    game = Game(update_ui_callback=None, update_record_callback=None)  # Dočasne None
 
     # Funkcia na aktualizovanie UI počas pretekov
     def update_ui(rychlost, ostava, sila, cas_str):
@@ -16,7 +18,8 @@ def main():
         ui.energia.set(sila)
         ui.stopky.set(cas_str)
 
-        oddych_cis, zrychlenie, narocnost, bonus, typ_terenu = terrain.zisti_pasmo(ostava)
+        # Použi terrain z game
+        oddych_cis, zrychlenie, narocnost, bonus, typ_terenu = game.terrain.zisti_pasmo(ostava)
         ui.aktualna_draha.set(typ_terenu)
         ui.aktualizuj()
 
@@ -24,8 +27,9 @@ def main():
     def update_record(record):
         ui.rekord.set(record)
 
-    # Vytvorenie objektu Game
-    game = Game(update_ui_callback=update_ui, update_record_callback=update_record)
+    # Teraz nastavíme späť správne callbacky
+    game.update_ui = update_ui
+    game.update_record = update_record
 
     # Callback funkcie pre UI
     def pridaj_rychlost():
@@ -40,7 +44,6 @@ def main():
         game.kon_max_rychlost = horse.max_rychlost
         game.kon_vydrz = horse.vydrz
 
-        # Preteky prebiehajú v hlavnej slučke, jednoduchý beh bez vlákien
         game.start_race()
 
     def koniec():
@@ -54,6 +57,8 @@ def main():
 
     # Spustenie GUI
     ui.spustit()
+
+
 
 
 if __name__ == "__main__":

@@ -64,8 +64,8 @@ class Game:
             else:
                 self.zataz += self.kon_rychlost / (narocnost - 3000)
 
-            self.sila = self.kon_vydrz - self.zataz
-            self.prejdene_metre += self.kon_rychlost * zrychlenie / 3.6 * 0.01
+            self.sila = self.kon_vydrz - self.zataz         # odoberanie energie kona
+            self.prejdene_metre += self.kon_rychlost * zrychlenie / 3.6 * 0.01 #obnovovanie prejdených metrov
             ostava = round(self.draha - self.prejdene_metre)
             
             cas_str = f"{self.minuty}:{int(self.cas):02d}"
