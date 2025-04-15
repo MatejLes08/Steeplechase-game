@@ -1,49 +1,92 @@
-import tkinter
+import pygame
 from Utils import Utils
 
 class UI:
     def __init__(self, pridaj_callback, spomal_callback, start_callback, koniec_callback):
-        self.okno = tkinter.Tk()
-        self.okno.title("Steeplchase preteky")
-        self.okno.configure(bg="#FFC66F")
+        pygame.init()
 
-        self.rychlost = tkinter.IntVar()
-        self.energia = tkinter.IntVar()
-        self.neprejdenych = tkinter.IntVar()
-        self.aktualna_draha = tkinter.StringVar()
-        self.stopky = tkinter.StringVar()
-        self.rekord = tkinter.StringVar(value=Utils.najnizsi_cas())
+        self.width = 800
+        self.height = 500
+        self.screen = pygame.display.set_mode((self.width, self.height), pygame.RESIZABLE)
+        pygame.display.set_caption("Steeplchase preteky")
+        self.font = pygame.font.SysFont(None, 40)
 
-        # Štítky a políčka
-        tkinter.Label(self.okno, text="Aktulna rýchlosť:", bg="#FFC66F", width=20).grid(row=0, column=0)
-        tkinter.Entry(self.okno, textvariable=self.rychlost, bg="#dc7800", fg="white", width=10).grid(row=0, column=1)
+        # farby
+        self.WHITE = (255, 255, 255)
+        self.GRAY = (200, 200, 200)
+        self.DARKGRAY = (100, 100, 100)
+        self.BLACK = (0, 0, 0)
+        self.ORANGE = (255, 198, 111)
 
-        tkinter.Label(self.okno, text="Energia koňa:", bg="#FFC66F", width=20).grid(row=1, column=0)
-        tkinter.Entry(self.okno, textvariable=self.energia, bg="#dc7800", fg="white", width=10).grid(row=1, column=1)
+        # premenné
+        self.rychlost = 0
+        self.energia = 0
+        self.neprejdenych = 0
+        self.aktualna_draha = ""
+        self.stopky = ""
+        self.rekord = Utils.najnizsi_cas()
 
-        tkinter.Label(self.okno, text="Počet metrov do cieľa:", bg="#FFC66F", width=20).grid(row=2, column=0)
-        tkinter.Entry(self.okno, textvariable=self.neprejdenych, bg="#dc7800", fg="white", width=10).grid(row=2, column=1)
+        # tlačidlá
+        self.button_cancel = pygame.Rect(32, 433, 150, 50)
+        self.button_decrease = pygame.Rect(216, 433, 150, 50)
+        self.button_increase = pygame.Rect(416, 433, 150, 50)
+        self.button_start = pygame.Rect(632, 433, 150, 50)
 
-        tkinter.Label(self.okno, text="Terén", bg="green", width=15).grid(row=0, column=2)
-        tkinter.Entry(self.okno, textvariable=self.aktualna_draha, bg="#dc7800", fg="white", width=15).grid(row=1, column=2)
+        # callback funkcie
+        self.pridaj_callback = pridaj_callback
+        self.spomal_callback = spomal_callback
+        self.start_callback = start_callback
+        self.koniec_callback = koniec_callback
 
-        tkinter.Label(self.okno, text="Čas:", bg="#FFC66F", width=20).grid(row=3, column=0)
-        tkinter.Entry(self.okno, textvariable=self.stopky, bg="#dc7800", fg="white", width=10).grid(row=3, column=1)
+    def draw_ui(self):
+        self.screen.fill(self.ORANGE)
 
-        tkinter.Label(self.okno, text="Rekord:", bg="#b50000", width=15).grid(row=2, column=2)
-        tkinter.Entry(self.okno, textvariable=self.rekord, bg="#dc7800", fg="white", width=5).grid(row=3, column=2)
+        def draw_text(label, value, x, y):
+            text = self.font.render(f"{label}: {value}", True, self.BLACK)
+            self.screen.blit(text, (x, y))
 
-        # Tlačidlá s prepojením na callbacky
-        tkinter.Button(self.okno, width=10, text="zrušiť", bg="red", command=koniec_callback).grid(row=3, column=3)
-        tkinter.Button(self.okno, width=10, text="Pridaj", bg="#b9b9b9", command=pridaj_callback).grid(row=1, column=3)
-        tkinter.Button(self.okno, width=10, text="Spomaľ", bg="#b9b9b9", command=spomal_callback).grid(row=2, column=3)
-        tkinter.Button(self.okno, width=10, text="Štart", bg="#9cff71", command=start_callback).grid(row=0, column=3)
+        draw_text("Rýchlosť", self.rychlost, 8, 70)
+        draw_text("Energia", self.energia, 92, 21)
+        draw_text("Do cieľa", self.neprejdenych, 279, 15)
+        draw_text("Terén", self.aktualna_draha, 8, 113)
+        draw_text("Čas", self.stopky, 565, 15)
+        draw_text("Rekord", self.rekord, 580, 70)
 
-    def aktualizuj(self):
-        self.okno.update()
+        pygame.draw.rect(self.screen, self.GRAY, self.button_cancel)
+        pygame.draw.rect(self.screen, self.GRAY, self.button_decrease)
+        pygame.draw.rect(self.screen, self.GRAY, self.button_increase)
+        pygame.draw.rect(self.screen, self.GRAY, self.button_start)
 
-    def spustit(self):
-        self.okno.mainloop()
+        def render_button_text(text, rect):
+            label = self.font.render(text, True, self.BLACK)
+            label_rect = label.get_rect(center=rect.center)
+            self.screen.blit(label, label_rect)
 
-    def zatvor(self):
-        self.okno.destroy()
+        render_button_text("zrušiť", self.button_cancel)
+        render_button_text("spomaľ", self.button_decrease)
+        render_button_text("pridaj", self.button_increase)
+        render_button_text("štart", self.button_start)
+
+        pygame.display.flip()
+
+    def handle_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if self.button_cancel.collidepoint(event.pos):
+                    self.koniec_callback()
+                elif self.button_decrease.collidepoint(event.pos):
+                    self.spomal_callback()
+                elif self.button_increase.collidepoint(event.pos):
+                    self.pridaj_callback()
+                elif self.button_start.collidepoint(event.pos):
+                    self.start_callback()
+        return True
+
+    def run(self):
+        running = True
+        while running:
+            running = self.handle_events()
+            self.draw_ui()
+        pygame.quit()
