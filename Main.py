@@ -13,19 +13,19 @@ def main():
 
     # Funkcia na aktualizovanie UI počas pretekov
     def update_ui(rychlost, ostava, sila, cas_str):
-        ui.rychlost.set(rychlost)
-        ui.neprejdenych.set(ostava)
-        ui.energia.set(sila)
-        ui.stopky.set(cas_str)
+        ui.rychlost = rychlost
+        ui.neprejdenych = ostava
+        ui.energia = sila
+        ui.stopky = cas_str
 
         # Použi terrain z game
         oddych_cis, zrychlenie, narocnost, bonus, typ_terenu = game.terrain.zisti_pasmo(ostava)
-        ui.aktualna_draha.set(typ_terenu)
-        ui.aktualizuj()
+        ui.aktualna_draha = typ_terenu
+        ui.draw_ui()
 
     # Funkcia na aktualizáciu rekordu po dojazde
     def update_record(record):
-        ui.rekord.set(record)
+        ui.rekord = record
 
     # Teraz nastavíme späť správne callbacky
     game.update_ui = update_ui
@@ -56,7 +56,7 @@ def main():
             koniec_callback=koniec)
 
     # Spustenie GUI
-    ui.spustit()
+    ui.run()
 
 
 
