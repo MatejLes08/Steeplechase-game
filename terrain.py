@@ -1,37 +1,50 @@
-import random
+import json
 
 class Terrain:
-    def __init__(self):
-        self.miesto_narocneho_pasma = random.randint(400, 1000)
-        self.miesto_sprinterskeho_pasma = random.randint(1400, 1800)
+    # Konštanty
+    NAROCNE_PASMO_RANGE = 300
+    SPRINTERSKE_PASMO_RANGE = 400
+    NAPAJADLO_RANGE = 20
 
-        napajadla = [
-            random.randint(1600, 2000),
-            random.randint(800, 1580),
-            random.randint(20, 780),
-        ]
-        self.napajadla = napajadla
+    ODYCH_DEFAULT = 0.01
+    ZRYCHLENIE_DEFAULT = 1
+    NAROCNOST_DEFAULT = 7000
+    BONUS_DEFAULT = 1
+
+    NAROCNE_PASMO_ODYCH = 0.005
+    NAROCNE_PASMO_NAROCNOST = 5000
+    SPRINTERSKE_PASMO_ZRYCHLENIE = 1.25
+    NAPAJADLO_BONUS = 10
+
+    def __init__(self, mapa_path="mapa1.json"):
+        with open(mapa_path, "r", encoding="utf-8") as file:
+            data = json.load(file)
+
+        self.miesto_narocneho_pasma = data["miesto_narocneho_pasma"]
+        self.miesto_sprinterskeho_pasma = data["miesto_sprinterskeho_pasma"]
+        self.napajadla = data["napajadla"]
 
     def zisti_pasmo(self, ostava):
-        oddych_cis = 0.01
-        zrychlenie = 1
-        narocnost = 7000
-        bonus = 1
+        oddych_cis = self.ODYCH_DEFAULT
+        zrychlenie = self.ZRYCHLENIE_DEFAULT
+        narocnost = self.NAROCNOST_DEFAULT
+        bonus = self.BONUS_DEFAULT
         terrain_type = "cesta"
 
-        if self.miesto_narocneho_pasma >= ostava >= self.miesto_narocneho_pasma - 300:
+        if self.miesto_narocneho_pasma >= ostava >= self.miesto_narocneho_pasma - self.NAROCNE_PASMO_RANGE:
             terrain_type = "Náročné pásmo"
-            narocnost = 5000
-            oddych_cis = 0.005
+            narocnost = self.NAROCNE_PASMO_NAROCNOST
+            oddych_cis = self.NAROCNE_PASMO_ODYCH
 
-        elif self.miesto_sprinterskeho_pasma >= ostava >= self.miesto_sprinterskeho_pasma - 400:
+        elif self.miesto_sprinterskeho_pasma >= ostava >= self.miesto_sprinterskeho_pasma - self.SPRINTERSKE_PASMO_RANGE:
             terrain_type = "Šprintérske pásmo"
-            zrychlenie = 1.25
+            zrychlenie = self.SPRINTERSKE_PASMO_ZRYCHLENIE
 
         for napajadlo in self.napajadla:
-            if napajadlo >= ostava >= napajadlo - 20:
+            if napajadlo >= ostava >= napajadlo - self.NAPAJADLO_RANGE:
                 terrain_type = "Napájadlo"
-                bonus = 10
+                bonus = self.NAPAJADLO_BONUS
                 break
 
         return oddych_cis, zrychlenie, narocnost, bonus, terrain_type
+
