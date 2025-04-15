@@ -68,7 +68,8 @@ class Game:
             self.prejdene_metre += self.kon_rychlost * zrychlenie / 3.6 * 0.01 #obnovovanie prejdených metrov
             ostava = round(self.draha - self.prejdene_metre)
             
-            cas_str = f"{self.minuty}:{int(self.cas):02d}"
+            cas_str = f"{self.minuty}:{int(self.cas):02d}:{int((self.cas - int(self.cas)) * 100):02d}"
+
             self.update_ui(int(self.kon_rychlost * zrychlenie), ostava, int(self.sila), cas_str)
 
         if self.bezi:
