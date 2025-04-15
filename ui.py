@@ -41,33 +41,39 @@ class UI:
     def draw_ui(self):
         self.screen.fill(self.ORANGE)
 
+        # Funkcia na vykreslenie štítku + hodnoty
         def draw_text(label, value, x, y):
             text = self.font.render(f"{label}: {value}", True, self.BLACK)
             self.screen.blit(text, (x, y))
 
-        draw_text("Rýchlosť", self.rychlost, 8, 70)
-        draw_text("Energia", self.energia, 92, 21)
-        draw_text("Do cieľa", self.neprejdenych, 279, 15)
-        draw_text("Terén", self.aktualna_draha, 8, 113)
-        draw_text("Čas", self.stopky, 565, 15)
-        draw_text("Rekord", self.rekord, 580, 70)
+        # Zobrazenie herných údajov
+        draw_text("Rýchlosť", self.rychlost, 20, 20)
+        draw_text("Energia", self.energia, 20, 60)
+        draw_text("Do cieľa", self.neprejdenych, 20, 100)
+        draw_text("Terén", self.aktualna_draha, 20, 140)
+        draw_text("Čas", self.stopky, 600, 20)
+        draw_text("Rekord", self.rekord, 600, 60)
 
+        # Tlačidlá
         pygame.draw.rect(self.screen, self.GRAY, self.button_cancel)
         pygame.draw.rect(self.screen, self.GRAY, self.button_decrease)
         pygame.draw.rect(self.screen, self.GRAY, self.button_increase)
         pygame.draw.rect(self.screen, self.GRAY, self.button_start)
 
+        # Texty na tlačidlách
         def render_button_text(text, rect):
             label = self.font.render(text, True, self.BLACK)
             label_rect = label.get_rect(center=rect.center)
             self.screen.blit(label, label_rect)
 
-        render_button_text("zrušiť", self.button_cancel)
-        render_button_text("spomaľ", self.button_decrease)
-        render_button_text("pridaj", self.button_increase)
-        render_button_text("štart", self.button_start)
+        render_button_text("Zrušiť", self.button_cancel)
+        render_button_text("Spomaľ", self.button_decrease)
+        render_button_text("Pridaj", self.button_increase)
+        render_button_text("Štart", self.button_start)
 
+        # Aktualizácia obrazovky
         pygame.display.flip()
+
 
     def handle_events(self):
         for event in pygame.event.get():
