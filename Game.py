@@ -21,6 +21,7 @@ class Game:
 
         self.terrain = terrain.Terrain()
 
+        self.bezi = False 
 
     def start_race(self):
         self.prejdene_metre = 0
@@ -29,10 +30,11 @@ class Game:
         self.zataz = 0
         self.sila = 100
         self.kon_rychlost = 0
+        self.bezi = True 
 
         ostava = self.draha
 
-        while self.prejdene_metre < self.draha:
+        while self.prejdene_metre < self.draha and self.bezi:
             time.sleep(0.01)
 
             self.cas += 0.01
@@ -69,6 +71,12 @@ class Game:
             cas_str = f"{self.minuty}:{int(self.cas):02d}"
             self.update_ui(int(self.kon_rychlost * zrychlenie), ostava, int(self.sila), cas_str)
 
-        Utils.ulozit_cas(cas_str)
-        self.update_record(self.najnizsi_cas())
+        if self.bezi:
+            Utils.ulozit_cas(cas_str)
+            self.update_record(self.najnizsi_cas())
 
+    def stop(self):
+        self.bezi = False 
+
+    def najnizsi_cas(self):
+        return Utils.najnizsi_cas()
