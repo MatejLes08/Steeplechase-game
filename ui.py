@@ -4,6 +4,7 @@ from Utils import Utils
 class UI:
     def __init__(self, pridaj_callback, spomal_callback, start_callback, koniec_callback):
         pygame.init()
+        self.game = None
 
         self.width = 800
         self.height = 500
@@ -90,9 +91,16 @@ class UI:
                     self.start_callback()
         return True
 
+    def set_game(self, game):
+        self.game = game
+
     def run(self):
+        clock = pygame.time.Clock()
         running = True
         while running:
+            dt = clock.tick(60) / 1000  # dt v sekundách
             running = self.handle_events()
+            if self.game:
+                self.game.update(dt)
             self.draw_ui()
         pygame.quit()

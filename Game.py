@@ -22,7 +22,8 @@ class Game:
 
         self.terrain = terrain.Terrain()
 
-        self.bezi = False 
+        self.running = False
+        self.last_time = time.time()
 
     def start_race(self):
         self.prejdene_metre = 0
@@ -31,49 +32,54 @@ class Game:
         self.zataz = 0
         self.sila = 100
         self.kon_rychlost = 0
-        self.bezi = True 
+        self.running = True 
 
-        ostava = self.DRAHA
+        self.ostava = self.DRAHA
 
-        while self.prejdene_metre < self.DRAHA and self.bezi:
-            time.sleep(0.01)
+    def update(self, dt):  # dt = čas od poslednej aktualizácie
+        if not self.running:
+            return
 
-            self.cas += 0.01
-            if int(self.cas) >= 60:
-                self.cas -= 60
-                self.minuty += 1
+        self.cas += dt
+        # rovnaký výpočet logiky ako doteraz, ale bez time.sleep()
 
-            oddych_cis, zrychlenie, narocnost, bonus, typ_terenu = self.terrain.zisti_pasmo(ostava)
+        if int(self.cas) >= 60:
+            self.cas -= 60
+            self.minuty += 1
 
-            if self.kon_rychlost == 0:
-                if self.sila < self.KON_VYDRZ:
-                    self.zataz -= oddych_cis * 2 * bonus
+        oddych_cis, zrychlenie, narocnost, bonus, typ_terenu = self.terrain.zisti_pasmo(self.ostava)
 
-            elif self.sila <= 0:
-                self.kon_rychlost = 4
+        if self.kon_rychlost == 0:
+            if self.sila < self.KON_VYDRZ:
+                self.zataz -= oddych_cis * 2 * bonus
 
-            elif self.kon_rychlost <= 12:
-                if self.sila < self.KON_VYDRZ:
-                    self.zataz -= oddych_cis
+        elif self.sila <= 0:
+            self.kon_rychlost = 4
 
-            elif self.kon_rychlost <= 24:
-                self.zataz += self.kon_rychlost / narocnost
+        elif self.kon_rychlost <= 12:
+            if self.sila < self.KON_VYDRZ:
+                self.zataz -= oddych_cis
 
-            elif self.kon_rychlost < 50:
-                self.zataz += self.kon_rychlost / (narocnost - self.NAROCNOST_BEH)
+        elif self.kon_rychlost <= 24:
+            self.zataz += self.kon_rychlost / narocnost
 
-            else:
-                self.zataz += self.kon_rychlost / (narocnost - self.NAROCNOST_SPRINT)
+        elif self.kon_rychlost < 50:
+            self.zataz += self.kon_rychlost / (narocnost - self.NAROCNOST_BEH)
 
-            self.sila = self.KON_VYDRZ - self.zataz         # odoberanie energie kona
-            self.prejdene_metre += self.kon_rychlost * zrychlenie / 3.6 * 0.01 #obnovovanie prejdených metrov
-            ostava = round(self.DRAHA - self.prejdene_metre)
-            
-            cas_str = f"{self.minuty}:{int(self.cas):02d}:{int((self.cas - int(self.cas)) * 100):02d}"
+        else:
+            self.zataz += self.kon_rychlost / (narocnost - self.NAROCNOST_SPRINT)
 
-            self.update_ui(int(self.kon_rychlost * zrychlenie), ostava, int(self.sila), cas_str)
+        self.sila = self.KON_VYDRZ - self.zataz         # odoberanie energie kona
+        self.prejdene_metre += self.kon_rychlost * zrychlenie / 3.6 * 0.01 #obnovovanie prejdených metrov
+        self.ostava = round(self.DRAHA - self.prejdene_metre)
+        
+        cas_str = f"{self.minuty}:{int(self.cas):02d}:{int((self.cas - int(self.cas)) * 100):02d}"
 
-        if self.bezi:
+        self.update_ui(int(self.kon_rychlost * zrychlenie), self.ostava, int(self.sila), cas_str)
+
+
+        if self.prejdene_metre >= self.DRAHA:
+            self.running = False
             Utils.ulozit_cas(cas_str)
             self.update_record(self.najnizsi_cas())
 

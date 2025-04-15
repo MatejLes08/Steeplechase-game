@@ -56,6 +56,7 @@ def main():
             koniec_callback=koniec)
 
     # Spustenie GUI
+    ui.set_game(game)
     ui.run()
 
 
