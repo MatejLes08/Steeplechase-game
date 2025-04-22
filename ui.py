@@ -78,7 +78,7 @@ class UI:
             self.offset = -int(posun % sirka)
             start_index = int(posun // sirka)
 
-            for i in range(10):
+            for i in range(9):
                 index = start_index + i
                 if index >= len(draha):
                     break

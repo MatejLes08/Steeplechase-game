@@ -38,7 +38,7 @@ class Game:
         self.horse = Horse() # reset koňa
 
 
-    self.ostava = self.DRAHA
+        self.ostava = self.DRAHA
         
     def update(self, dt):  # dt = čas od poslednej aktualizácie
         if not self.running:
