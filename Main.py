@@ -21,13 +21,13 @@ def main():
         # Použi terrain z game
         oddych_cis, zrychlenie, narocnost, bonus, typ_terenu = game.terrain.zisti_pasmo(ostava)
         ui.aktualna_draha = typ_terenu
-        ui.draw_ui()
+        ui.draw_ui(horse)
 
     # Funkcia na aktualizáciu rekordu po dojazde
     def update_record(record):
         ui.rekord = record
 
-    # Teraz nastavíme späť správne callbacky
+    # nastavenie callbackov
     game.update_ui = update_ui
     game.update_record = update_record
 
@@ -57,7 +57,7 @@ def main():
 
     # Spustenie GUI
     ui.set_game(game)
-    ui.run()
+    ui.run(horse)
 
 
 

@@ -38,3 +38,7 @@ class Utils:
             return Utils.stotiny_na_cas(najnizsi)
         else:
             return "N/A"
+    @staticmethod
+    def map_range(value, from_min, from_max, to_min, to_max):
+        # Prevod na nový rozsah
+        return (value - from_min) * (to_max - to_min) / (from_max - from_min) + to_min
