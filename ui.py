@@ -143,13 +143,16 @@ class UI:
 
     def run(self, horse):
         clock = pygame.time.Clock()
+        dt = 0.0 # dt nastavujem najprv na 0.0, ale potom ho zmením - len, aby to nespadlo na chybe referenced before assignment
         running = True
         while running:
-            dt = clock.tick(60) / 1000  # dt v sekundách
             running = self.handle_events()
             if self.game:
                 self.game.update(dt)
+
             self.draw_ui(horse)
             horse.update_animacia()
+
+            dt = clock.tick(60) / 1000  # dt v sekundách
 
         pygame.quit()

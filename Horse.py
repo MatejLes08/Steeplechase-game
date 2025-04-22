@@ -3,15 +3,23 @@ import pygame
 
 class Horse:
     def __init__(self):
+        self.DRAHA = 2000
+        self.VYDRZ = 100
+        self.NAROCNOST_BEH = 2000
+        self.NAROCNOST_SPRINT = 3000
+
         self.rychlost = 0
         self.max_rychlost = 60
-        self.vydrz = 100
         self.sila = 100
         self.zataz = 0
+        self.prejdene_metre = 0
+        self.ostava = self.DRAHA
+
         #vizualiacia
         self.beh = [pygame.image.load("assets/bezi1.png"),pygame.image.load("assets/bezi2.png"),pygame.image.load("assets/bezi3.png"),pygame.image.load("assets/bezi4.png")]
         self.chodza = [pygame.image.load("assets/chodi1.png"),pygame.image.load("assets/chodi2.png"),pygame.image.load("assets/chodi3.png"),pygame.image.load("assets/chodi4.png")]
         self.statie = [pygame.image.load("assets/stoji.png")]
+        
         self.player_frame_index = 0
         self.animation_speed = 0.1
         self.current_image = self.statie[0]
@@ -32,27 +40,27 @@ class Horse:
 
     def aktualizuj_silu(self, oddych_cis, zrychlenie, narocnost, bonus):
         if self.rychlost == 0:
-            if self.sila < 100:
+            if self.sila < self.VYDRZ:
                 self.zataz -= oddych_cis * 2 * bonus
 
         elif self.sila <= 0:
             self.rychlost = 4
 
         elif self.rychlost <= 12:
-            if self.sila < 100:
+            if self.sila < self.VYDRZ:
                 self.zataz -= oddych_cis
 
         elif self.rychlost <= 24:
             self.zataz += self.rychlost / narocnost
 
         elif self.rychlost < 50:
-            self.zataz += self.rychlost / (narocnost - 2000)
+            self.zataz += self.rychlost / (narocnost - self.NAROCNOST_BEH)
 
         else:
-            self.zataz += self.rychlost / (narocnost - 3000)
+            self.zataz += self.rychlost / (narocnost - self.NAROCNOST_SPRINT)
 
-        # Zabezpečiť, že sila sa nezvýši nad maximum alebo nezníži pod 0
-        self.sila = max(0, min(self.vydrz - self.zataz, 100))
+        self.sila = self.VYDRZ - self.zataz         # odoberanie energie kona
+        self.prejdene_metre += self.rychlost * zrychlenie / 3.6 * 0.01 #obnovovanie prejdených metrov
     
     def update_animacia(self):
         self.player_frame_index += self.animation_speed
@@ -80,3 +88,6 @@ class Horse:
 
     def get_sila(self):
         return self.sila
+    
+    def get_ostava(self):
+        return round(self.DRAHA - self.prejdene_metre)
