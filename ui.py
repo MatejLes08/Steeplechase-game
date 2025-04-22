@@ -92,7 +92,7 @@ class UI:
                 }.get(nazov_terenu, (100, 100, 100))
 
                 x_pozicia = i * sirka + self.offset
-                rect = pygame.Rect(x_pozicia, 300, sirka, 100)
+                rect = pygame.Rect(x_pozicia, 220, sirka, 200)
 
                 pygame.draw.rect(self.screen, farba, rect)           # výplň
                 pygame.draw.rect(self.screen, (0, 0, 0), rect, 1)     # čierny okraj
