@@ -1,5 +1,6 @@
 import pygame
 from Utils import Utils
+from Horse import Horse
 
 class UI:
     def __init__(self, pridaj_callback, spomal_callback, start_callback, koniec_callback):
@@ -39,7 +40,7 @@ class UI:
         self.start_callback = start_callback
         self.koniec_callback = koniec_callback
 
-    def draw_ui(self):
+    def draw_ui(self, horse):
         self.screen.fill(self.ORANGE)
 
         # Funkcia na vykreslenie štítku + hodnoty
@@ -72,6 +73,9 @@ class UI:
         render_button_text("Pridaj", self.button_increase)
         render_button_text("Štart", self.button_start)
 
+        #vykreslenie obrazku hráča
+        self.screen.blit(horse.current_image, (horse.position_x, horse.position_y))
+
         # Aktualizácia obrazovky
         pygame.display.flip()
 
@@ -94,7 +98,7 @@ class UI:
     def set_game(self, game):
         self.game = game
 
-    def run(self):
+    def run(self, horse):
         clock = pygame.time.Clock()
         dt = 0.0 # dt nastavujem najprv na 0.0, ale potom ho zmením - len, aby to nespadlo na chybe referenced before assignment
         running = True
@@ -102,6 +106,10 @@ class UI:
             running = self.handle_events()
             if self.game:
                 self.game.update(dt)
-            self.draw_ui()
+
+            self.draw_ui(horse)
+            horse.update_animacia()
+
             dt = clock.tick(60) / 1000  # dt v sekundách
+
         pygame.quit()
