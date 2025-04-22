@@ -3,9 +3,9 @@ from Utils import Utils
 from Horse import Horse
 
 class UI:
-    def __init__(self, pridaj_callback, spomal_callback, start_callback, koniec_callback):
+    def __init__(self, pridaj_callback, spomal_callback, start_callback, koniec_callback,gamec):
         pygame.init()
-        self.game = None
+        self.game = gamec
 
         self.width = 800
         self.height = 500
@@ -40,8 +40,17 @@ class UI:
         self.start_callback = start_callback
         self.koniec_callback = koniec_callback
 
+        # Získanie terénu z Game
+        self.draha = self.game.get_terrain_path()
+
+
+    
+
     def draw_ui(self, horse):
         self.screen.fill(self.ORANGE)
+
+        
+
 
         # Funkcia na vykreslenie štítku + hodnoty
         def draw_text(label, value, x, y):
@@ -53,8 +62,42 @@ class UI:
         draw_text("Energia", self.energia, 20, 60)
         draw_text("Do cieľa", self.neprejdenych, 20, 100)
         draw_text("Terén", self.aktualna_draha, 20, 140)
+        if self.game:
+            self.aktualna_draha = self.game.get_akt_draha()
+        draw_text("Terén", self.aktualna_draha, 20, 140)
+
         draw_text("Čas", self.stopky, 600, 20)
         draw_text("Rekord", self.rekord, 600, 60)
+
+      
+             # Posúvajúce sa pásy (cesta)
+        if self.game:
+            posun = self.game.posun_cesty
+            sirka = self.game.sirka_useku
+            draha = self.draha
+            self.offset = -int(posun % sirka)
+            start_index = int(posun // sirka)
+
+            for i in range(10):
+                index = start_index + i
+                if index >= len(draha):
+                    break
+                nazov_terenu = draha[index]
+
+                farba = {
+                    "Cesta": (160, 82, 45),
+                    "Napájadlo": (0, 191, 255),
+                    "Náročné pásmo": (139, 0, 0),
+                    "Šprintérske pásmo": (255, 215, 0),
+                }.get(nazov_terenu, (100, 100, 100))
+
+                x_pozicia = i * sirka + self.offset
+                rect = pygame.Rect(x_pozicia, 300, sirka, 100)
+
+                pygame.draw.rect(self.screen, farba, rect)           # výplň
+                pygame.draw.rect(self.screen, (0, 0, 0), rect, 1)     # čierny okraj
+
+
 
         # Tlačidlá
         pygame.draw.rect(self.screen, self.GRAY, self.button_cancel)

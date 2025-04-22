@@ -21,9 +21,13 @@ class Game:
         self.update_record = update_record_callback
 
         self.terrain = terrain.Terrain()
+        self.posun_cesty = 0  # pixely posunu celej cesty
+        self.sirka_useku = 100  # šírka jedného úseku v px
+
 
         self.running = False
         self.last_time = time.time()
+        self.aktualny_teren = ""
 
     def start_race(self):
         self.prejdene_metre = 0
@@ -35,8 +39,12 @@ class Game:
         self.running = True 
 
         self.ostava = self.DRAHA
+        
 
-    def update(self, dt):  # dt = čas od poslednej aktualizácie
+    
+
+
+    def update(self, dt,):  # dt = čas od poslednej aktualizácie
         if not self.running:
             return
 
@@ -47,7 +55,7 @@ class Game:
             self.cas -= 60
             self.minuty += 1
 
-        oddych_cis, zrychlenie, narocnost, bonus, typ_terenu = self.terrain.zisti_pasmo(self.ostava)
+        oddych_cis, zrychlenie, narocnost, bonus, typ_terenu = self.terrain.zisti_pasmo(int(self.prejdene_metre))
 
         if self.kon_rychlost == 0:
             if self.sila < self.KON_VYDRZ:
@@ -82,9 +90,28 @@ class Game:
             self.running = False
             Utils.ulozit_cas(cas_str)
             self.update_record(self.najnizsi_cas())
+        self.posun_cesty += self.kon_rychlost * dt * 11  # aktualizuj posun v pixeloch
+        self.aktualny_teren = typ_terenu  # pre UI
 
+    def get_akt_draha(self):
+        return self.aktualny_teren
     def stop(self):
         self.bezi = False 
 
     def najnizsi_cas(self):
         return Utils.najnizsi_cas()
+    
+    def get_terrain_path(self):
+        draha = []
+        for meter in range(2000, 0, -1):
+            typ = "Cesta"
+            if self.terrain.miesto_narocneho_pasma >= meter >= self.terrain.miesto_narocneho_pasma - self.terrain.NAROCNE_PASMO_RANGE:
+                typ = "Náročné pásmo"
+            elif self.terrain.miesto_sprinterskeho_pasma >= meter >= self.terrain.miesto_sprinterskeho_pasma - self.terrain.SPRINTERSKE_PASMO_RANGE:
+                typ = "Šprintérske pásmo"
+            for napajadlo in self.terrain.napajadla:
+                if napajadlo >= meter >= napajadlo - self.terrain.NAPAJADLO_RANGE:
+                    typ = "Napájadlo"
+                    break
+            draha.append(typ)
+        return draha

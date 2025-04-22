@@ -17,6 +17,7 @@ class Terrain:
     NAPAJADLO_BONUS = 10
 
     def __init__(self, mapa_path="mapa1.json"):
+        print("vytvoril som sa")
         with open(mapa_path, "r", encoding="utf-8") as file:
             data = json.load(file)
 
@@ -29,7 +30,7 @@ class Terrain:
         zrychlenie = self.ZRYCHLENIE_DEFAULT
         narocnost = self.NAROCNOST_DEFAULT
         bonus = self.BONUS_DEFAULT
-        terrain_type = "cesta"
+        terrain_type = "Cesta"
 
         if self.miesto_narocneho_pasma >= ostava >= self.miesto_narocneho_pasma - self.NAROCNE_PASMO_RANGE:
             terrain_type = "Náročné pásmo"
@@ -47,4 +48,5 @@ class Terrain:
                 break
 
         return oddych_cis, zrychlenie, narocnost, bonus, terrain_type
+
 

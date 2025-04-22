@@ -1,7 +1,6 @@
 from ui import UI
 from Game import Game
 from Horse import Horse
-from terrain import Terrain
 from ui import Utils
 
 
@@ -18,9 +17,7 @@ def main():
         ui.energia = sila
         ui.stopky = cas_str
 
-        # Použi terrain z game
-        oddych_cis, zrychlenie, narocnost, bonus, typ_terenu = game.terrain.zisti_pasmo(ostava)
-        ui.aktualna_draha = typ_terenu
+        
         ui.draw_ui(horse)
 
     # Funkcia na aktualizáciu rekordu po dojazde
@@ -53,7 +50,7 @@ def main():
     ui = UI(pridaj_callback=pridaj_rychlost,
             spomal_callback=spomal_rychlost,
             start_callback=start,
-            koniec_callback=koniec)
+            koniec_callback=koniec, gamec=game)
 
     # Spustenie GUI
     ui.set_game(game)
