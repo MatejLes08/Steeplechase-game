@@ -41,9 +41,6 @@ def main():
         game.kon_rychlost = horse.get_rychlost()
 
     def start():
-        game.kon_max_rychlost = horse.max_rychlost
-        game.kon_vydrz = horse.vydrz
-
         game.start_race()
 
     def koniec():
