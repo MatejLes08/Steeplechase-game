@@ -25,7 +25,7 @@ class Game:
 
         self.posun_cesty = 0  # pixely posunu celej cesty
         self.sirka_useku = 100  # šírka jedného úseku v px
-        self.running = False
+        self.running_game = False
         self.last_time = time.time()
         self.aktualny_teren = ""
 
@@ -34,14 +34,14 @@ class Game:
         self.prejdene_metre = 0
         self.cas = 0
         self.minuty = 0
-        self.running = True 
+        self.running_game = True 
         self.horse = Horse() # reset koňa
 
 
         self.ostava = self.DRAHA
         
     def update(self, dt):  # dt = čas od poslednej aktualizácie
-        if not self.running:
+        if not self.running_game:
             return
 
         self.cas += dt
@@ -65,7 +65,7 @@ class Game:
 
 
         if self.prejdene_metre >= self.DRAHA:
-            self.running = False
+            self.running_game = False
             Utils.ulozit_cas(cas_str)
             self.update_record(self.najnizsi_cas())
         self.posun_cesty += self.kon_rychlost * dt * 11  # aktualizuj posun v pixeloch
@@ -74,7 +74,8 @@ class Game:
     def get_akt_draha(self):
         return self.aktualny_teren
     def stop(self):
-        self.bezi = False 
+        self.running = False 
+        self.running_game = False
 
     def najnizsi_cas(self):
         return Utils.najnizsi_cas()

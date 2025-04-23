@@ -5,6 +5,8 @@ from Horse import Horse
 class UI:
     def __init__(self, pridaj_callback, spomal_callback, start_callback, koniec_callback,gamec):
         pygame.init()
+
+        
         self.game = gamec
 
         self.width = 800
@@ -44,7 +46,8 @@ class UI:
         self.draha = self.game.get_terrain_path()
 
 
-    
+    def zatvor(self):
+        self.game.stop()
 
     def draw_ui(self, horse):
         self.screen.fill(self.ORANGE)
@@ -76,7 +79,7 @@ class UI:
             sirka = self.game.sirka_useku
             draha = self.draha
             self.offset = -int(posun % sirka)
-            start_index = int(posun // sirka)
+            start_index = int(posun // sirka)-9
 
             for i in range(9):
                 index = start_index + i
@@ -129,7 +132,7 @@ class UI:
                 return False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if self.button_cancel.collidepoint(event.pos):
-                    self.koniec_callback()
+                    return False
                 elif self.button_decrease.collidepoint(event.pos):
                     self.spomal_callback()
                 elif self.button_increase.collidepoint(event.pos):
@@ -144,9 +147,9 @@ class UI:
     def run(self, horse):
         clock = pygame.time.Clock()
         dt = 0.0 # dt nastavujem najprv na 0.0, ale potom ho zmením - len, aby to nespadlo na chybe referenced before assignment
-        running = True
-        while running:
-            running = self.handle_events()
+        self.game.running = True
+        while self.game.running:
+            self.game.running = self.handle_events()
             if self.game:
                 self.game.update(dt)
 
