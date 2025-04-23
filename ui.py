@@ -46,8 +46,7 @@ class UI:
         self.draha = self.game.get_terrain_path()
 
 
-    def zatvor(self):
-        self.game.stop()
+    
 
     def draw_ui(self, horse):
         self.screen.fill(self.ORANGE)

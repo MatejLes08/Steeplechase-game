@@ -73,9 +73,7 @@ class Game:
 
     def get_akt_draha(self):
         return self.aktualny_teren
-    def stop(self):
-        self.running = False 
-        self.running_game = False
+    
 
     def najnizsi_cas(self):
         return Utils.najnizsi_cas()
