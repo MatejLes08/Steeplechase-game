@@ -1,9 +1,13 @@
 import pygame
 from Utils import Utils
+from Horse import Horse
 
 class UI:
-    def __init__(self, pridaj_callback, spomal_callback, start_callback, koniec_callback):
+    def __init__(self, pridaj_callback, spomal_callback, start_callback, koniec_callback,gamec):
         pygame.init()
+
+        
+        self.game = gamec
 
         self.width = 800
         self.height = 500
@@ -39,9 +43,19 @@ class UI:
         self.start_callback = start_callback
         self.koniec_callback = koniec_callback
 
-    def draw_ui(self):
+        # Získanie terénu z Game
+        self.draha = self.game.get_terrain_path()
+
+
+    
+
+    def draw_ui(self, horse):
         self.screen.fill(self.ORANGE)
 
+        
+
+
+        # Funkcia na vykreslenie štítku + hodnoty
         def draw_text(label, value, x, y):
             text = self.font.render(f"{label}: {value}", True, self.BLACK)
             self.screen.blit(text, (x, y))
@@ -94,17 +108,23 @@ class UI:
         pygame.draw.rect(self.screen, self.GRAY, self.button_increase)
         pygame.draw.rect(self.screen, self.GRAY, self.button_start)
 
+        # Texty na tlačidlách
         def render_button_text(text, rect):
             label = self.font.render(text, True, self.BLACK)
             label_rect = label.get_rect(center=rect.center)
             self.screen.blit(label, label_rect)
 
-        render_button_text("zrušiť", self.button_cancel)
-        render_button_text("spomaľ", self.button_decrease)
-        render_button_text("pridaj", self.button_increase)
-        render_button_text("štart", self.button_start)
+        render_button_text("Zrušiť", self.button_cancel)
+        render_button_text("Spomaľ", self.button_decrease)
+        render_button_text("Pridaj", self.button_increase)
+        render_button_text("Štart", self.button_start)
 
+        #vykreslenie obrazku hráča
+        self.screen.blit(horse.current_image, (horse.position_x, horse.position_y))
+
+        # Aktualizácia obrazovky
         pygame.display.flip()
+
 
     def handle_events(self):
         for event in pygame.event.get():
@@ -112,7 +132,7 @@ class UI:
                 return False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if self.button_cancel.collidepoint(event.pos):
-                    self.koniec_callback()
+                    return False
                 elif self.button_decrease.collidepoint(event.pos):
                     self.spomal_callback()
                 elif self.button_increase.collidepoint(event.pos):
@@ -121,9 +141,21 @@ class UI:
                     self.start_callback()
         return True
 
-    def run(self):
-        running = True
-        while running:
-            running = self.handle_events()
-            self.draw_ui()
+    def set_game(self, game):
+        self.game = game
+
+    def run(self, horse):
+        clock = pygame.time.Clock()
+        dt = 0.0 # dt nastavujem najprv na 0.0, ale potom ho zmením - len, aby to nespadlo na chybe referenced before assignment
+        self.game.running = True
+        while self.game.running:
+            self.game.running = self.handle_events()
+            if self.game:
+                self.game.update(dt)
+
+            self.draw_ui(horse)
+            horse.update_animacia()
+
+            dt = clock.tick(60) / 1000  # dt v sekundách
+
         pygame.quit()
