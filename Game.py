@@ -52,10 +52,11 @@ class Game:
         sila = self.horse.get_sila()
         self.ostava = self.horse.get_ostava()
         self.prejdene_metre = self.horse.prejdene_metre
+        self.pretazenie = self.horse.pretazenie
 
         
         cas_str = f"{self.minuty}:{int(self.cas):02d}:{int((self.cas - int(self.cas)) * 100):02d}"
-        self.update_ui(int(rych * zrychlenie), self.ostava, int(sila), cas_str)
+        self.update_ui(int(rych * zrychlenie), self.ostava, int(sila), cas_str, self.pretazenie*100)
 
 
         if self.prejdene_metre >= self.DRAHA:

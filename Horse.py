@@ -11,7 +11,7 @@ class Horse:
         self.rychlost = 0
         self.max_rychlost = 60
         self.sila = 100
-        self.zataz = 0
+        self.pretazenie = 0
         self.prejdene_metre = 0
         self.ostava = self.DRAHA
 
@@ -42,30 +42,34 @@ class Horse:
     def aktualizuj_silu(self, oddych_cis, zrychlenie, narocnost, bonus):
         if self.rychlost == 0:
             if self.sila < self.VYDRZ:
-                self.zataz -= oddych_cis * 2 * bonus
+                self.pretazenie = -oddych_cis * 2 * bonus  # oddych
+            else:
+                self.pretazenie = 0
 
         elif self.sila <= 0:
             if self.rychlost > 0:
                 self.rychlost -= 4  # pomaly dobieha do zastavenia
             if self.rychlost < 0:
                 self.rychlost = 0
+            self.pretazenie = 0  # žiadne ďalšie zvyšovanie únavy
 
         elif self.rychlost <= 12:
             if self.sila < self.VYDRZ:
-                self.zataz -= oddych_cis
+                self.pretazenie = -oddych_cis  # mierny oddych
 
         elif self.rychlost <= 24:
-            self.zataz += self.rychlost / narocnost
+            self.pretazenie = self.rychlost / narocnost
 
         elif self.rychlost < 50:
-            self.zataz += self.rychlost / (narocnost - self.NAROCNOST_BEH)
+            self.pretazenie = self.rychlost / (narocnost - self.NAROCNOST_BEH)
 
         else:
-            self.zataz += self.rychlost / (narocnost - self.NAROCNOST_SPRINT)
+            self.pretazenie = self.rychlost / (narocnost - self.NAROCNOST_SPRINT)
 
-        self.sila = self.VYDRZ - self.zataz         # odoberanie energie kona
+        self.sila -= self.pretazenie         # odoberanie energie kona
         self.prejdene_metre += self.rychlost * zrychlenie / 3.6 * 0.01 #obnovovanie prejdených metrov
-    
+        
+
     def update_animacia(self):
         self.player_frame_index += self.animation_speed
 

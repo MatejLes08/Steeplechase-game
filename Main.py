@@ -11,12 +11,12 @@ def main():
     game = Game(update_ui_callback=None, update_record_callback=None, horse = horse)  # Dočasne None
 
     # Funkcia na aktualizovanie UI počas pretekov
-    def update_ui(rychlost, ostava, sila, cas_str):
+    def update_ui(rychlost, ostava, sila, cas_str, pretazenie):
         ui.rychlost = rychlost
         ui.neprejdenych = ostava
         ui.energia = sila
         ui.stopky = cas_str
-
+        ui.pretazenie = pretazenie
         
         ui.draw_ui(horse)
 

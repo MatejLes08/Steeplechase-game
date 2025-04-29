@@ -29,6 +29,7 @@ class UI:
         self.aktualna_draha = ""
         self.stopky = ""
         self.rekord = Utils.najnizsi_cas()
+        self.pretazenie = 0
 
         # tlačidlá
         self.button_cancel = pygame.Rect(32, 433, 150, 50)
@@ -70,7 +71,7 @@ class UI:
 
         draw_text("Čas", self.stopky, 600, 20)
         draw_text("Rekord", self.rekord, 600, 60)
-
+        draw_text("Preťaženie", self.pretazenie, 600, 100)
       
              # Posúvajúce sa pásy (cesta)
         if self.game:
