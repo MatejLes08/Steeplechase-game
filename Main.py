@@ -8,7 +8,7 @@ def main():
     horse = Horse()
 
     # Vytvorenie objektu Game
-    game = Game(update_ui_callback=None, update_record_callback=None)  # Dočasne None
+    game = Game(update_ui_callback=None, update_record_callback=None, horse = horse)  # Dočasne None
 
     # Funkcia na aktualizovanie UI počas pretekov
     def update_ui(rychlost, ostava, sila, cas_str):
