@@ -5,11 +5,10 @@ from Horse import Horse
 from Utils import Utils  
 
 class Game:
-    def __init__(self, update_ui_callback, update_record_callback):
+    def __init__(self, update_ui_callback, update_record_callback, horse):
         self.DRAHA = 2000
         self.prejdene_metre = 0
         self.ostava = self.DRAHA
-        self.kon_rychlost = 0
         
         self.zataz = 0
         self.sila = 100
@@ -19,9 +18,9 @@ class Game:
 
         self.update_ui = update_ui_callback
         self.update_record = update_record_callback
+        self.horse = horse
 
         self.terrain = terrain.Terrain()
-        self.horse = Horse()
 
         self.posun_cesty = 0  # pixely posunu celej cesty
         self.sirka_useku = 100  # šírka jedného úseku v px
@@ -30,12 +29,10 @@ class Game:
         self.aktualny_teren = ""
 
     def start_race(self):
-        self.kon_rychlost = 0
         self.prejdene_metre = 0
         self.cas = 0
         self.minuty = 0
         self.running_game = True 
-        self.horse = Horse() # reset koňa
 
 
         self.ostava = self.DRAHA
@@ -58,7 +55,7 @@ class Game:
         sila = self.horse.get_sila()
         self.ostava = self.horse.get_ostava()
         self.prejdene_metre = self.horse.prejdene_metre
-        self.horse.rychlost = self.kon_rychlost 
+        
         
         cas_str = f"{self.minuty}:{int(self.cas):02d}:{int((self.cas - int(self.cas)) * 100):02d}"
         self.update_ui(int(rych * zrychlenie), self.ostava, int(sila), cas_str)
@@ -68,7 +65,8 @@ class Game:
             self.running_game = False
             Utils.ulozit_cas(cas_str)
             self.update_record(self.najnizsi_cas())
-        self.posun_cesty += self.kon_rychlost * dt * 11  # aktualizuj posun v pixeloch
+
+        self.posun_cesty += rych * dt * 11  # aktualizuj posun v pixeloch
         self.aktualny_teren = typ_terenu  # pre UI
 
     def get_akt_draha(self):

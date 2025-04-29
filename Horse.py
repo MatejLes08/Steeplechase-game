@@ -27,10 +27,11 @@ class Horse:
         self.position_y = 300
 
     def pridaj_rychlost(self):
-        if self.sila != 0 and self.rychlost < self.max_rychlost:
+        if self.sila > 0 and self.rychlost < self.max_rychlost:
             self.rychlost += 4
             if self.rychlost > self.max_rychlost:
                 self.rychlost = self.max_rychlost
+
 
     def spomal_rychlost(self):
         if self.rychlost > 0:
@@ -44,7 +45,10 @@ class Horse:
                 self.zataz -= oddych_cis * 2 * bonus
 
         elif self.sila <= 0:
-            self.rychlost = 4
+            if self.rychlost > 0:
+                self.rychlost -= 4  # pomaly dobieha do zastavenia
+            if self.rychlost < 0:
+                self.rychlost = 0
 
         elif self.rychlost <= 12:
             if self.sila < self.VYDRZ:
