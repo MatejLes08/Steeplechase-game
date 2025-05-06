@@ -43,7 +43,8 @@ class UI:
         self.button_start = pygame.Rect(632, 433, 150, 50)
 
         # Tlačidlá - MENU
-        self.button_start_menu = pygame.Rect(300, 300, 200, 60)
+        self.button_start_menu = pygame.Rect(300, 200, 200, 50)
+        self.button_exit_menu = pygame.Rect(300, 300, 200, 50)
 
         # callback funkcie
         self.pridaj_callback = pridaj_callback
@@ -60,21 +61,27 @@ class UI:
     def draw_menu(self):
         self.screen.fill(self.ORANGE)
         title = self.font.render("Steeplechase preteky", True, self.BLACK)
-        self.screen.blit(title, (self.width // 2 - title.get_width() // 2, 100))
+        self.screen.blit(title, (self.width // 2 - title.get_width() // 2, 100)) #Zobrazenie textu a zarovnanie na stred
 
+        # Tlačidlá menu
         pygame.draw.rect(self.screen, self.GRAY, self.button_start_menu)
-        label = self.font.render("Štart hry", True, self.BLACK)
-        label_rect = label.get_rect(center=self.button_start_menu.center)
-        self.screen.blit(label, label_rect)
+        pygame.draw.rect(self.screen, self.GRAY, self.button_exit_menu)
+
+
+        # Texty na tlačidlách menu
+        def render_button_text(text, rect):
+            label = self.font.render(text, True, self.BLACK)
+            label_rect = label.get_rect(center=rect.center)
+            self.screen.blit(label, label_rect)
+
+        render_button_text("Hrať", self.button_start_menu)
+        render_button_text("Ukončiť", self.button_exit_menu)
 
         pygame.display.flip()
     
 
     def draw_ui(self, horse):
         self.screen.fill(self.ORANGE)
-
-        
-
 
         # Funkcia na vykreslenie štítku + hodnoty
         def draw_text(label, value, x, y):
