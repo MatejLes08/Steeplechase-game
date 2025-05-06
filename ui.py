@@ -1,9 +1,14 @@
 import pygame
+from enum import Enum
 from Utils import Utils
 from Horse import Horse
 
+class Screen(Enum):
+    MENU = 1
+    GAME = 2
+
 class UI:
-    def __init__(self, pridaj_callback, spomal_callback, start_callback, koniec_callback,gamec):
+    def __init__(self, pridaj_callback, spomal_callback, start_callback, koniec_callback, gamec):
         pygame.init()
 
         
@@ -13,6 +18,7 @@ class UI:
         self.height = 500
         self.screen = pygame.display.set_mode((self.width, self.height), pygame.RESIZABLE)
         pygame.display.set_caption("Steeplchase preteky")
+        self.title_font = pygame.font.SysFont(None, 60)
         self.font = pygame.font.SysFont(None, 40)
         self.fontMetre = pygame.font.SysFont(None, 110)
         self.fontCas = pygame.font.SysFont("Arial", 70)
@@ -35,12 +41,20 @@ class UI:
         self.stopky = "0:00:00"
         self.rekord = Utils.najnizsi_cas()
         self.pretazenie = 0
+        self.meno_hraca = ""
+        self.meno_input = ""
+        self.input_rect = pygame.Rect(self.width // 2 - 150, 180, 300, 40)
+        self.active_input = False  # či je input pole aktívne
 
-        # tlačidlá
+        # Tlačidlá - HRA
         self.button_cancel = pygame.Rect(32, 433, 150, 50)
         self.button_decrease = pygame.Rect(216, 433, 150, 50)
         self.button_increase = pygame.Rect(416, 433, 150, 50)
         self.button_start = pygame.Rect(632, 433, 150, 50)
+
+        # Tlačidlá - MENU
+        self.button_start_menu = pygame.Rect(300, 250, 200, 50)
+        self.button_exit_menu = pygame.Rect(300, 350, 200, 50)
 
         # callback funkcie
         self.pridaj_callback = pridaj_callback
@@ -51,7 +65,41 @@ class UI:
         # Získanie terénu z Game
         self.draha = self.game.get_terrain_path()
 
+        # Riadenie aktuálnej obrazovky
+        self.current_screen = Screen.MENU
 
+    def draw_menu(self):
+        self.screen.fill(self.ORANGE)
+        title = self.title_font.render("Steeplechase preteky", True, self.BLACK)
+        self.screen.blit(title, (self.width // 2 - title.get_width() // 2, 50))  
+
+        # Text "Meno hráča:"
+        meno_label = self.font.render("Meno hráča:", True, self.BLACK)
+        label_rect = meno_label.get_rect(center=(self.width // 2, 150))
+        self.screen.blit(meno_label, label_rect)
+        
+        # Input pole na meno
+        pygame.draw.rect(self.screen, self.WHITE, self.input_rect, 0)
+        border_color = self.BLACK if self.active_input else self.DARKGRAY
+        pygame.draw.rect(self.screen, border_color, self.input_rect, 2)
+
+        meno_text = self.font.render(self.meno_input, True, self.BLACK)
+        self.screen.blit(meno_text, (self.input_rect.x + 10, self.input_rect.y + 5))
+
+        # Tlačidlá menu
+        pygame.draw.rect(self.screen, self.GRAY, self.button_start_menu)
+        pygame.draw.rect(self.screen, self.GRAY, self.button_exit_menu)
+
+        # Texty na tlačidlách
+        def render_button_text(text, rect):
+            label = self.font.render(text, True, self.BLACK)
+            label_rect = label.get_rect(center=rect.center)
+            self.screen.blit(label, label_rect)
+
+        render_button_text("Hrať", self.button_start_menu)
+        render_button_text("Ukončiť", self.button_exit_menu)
+
+        pygame.display.flip()
     
 
     def draw_ui(self, horse):
@@ -174,15 +222,40 @@ class UI:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return False
+
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if self.button_cancel.collidepoint(event.pos):
-                    return False
-                elif self.button_decrease.collidepoint(event.pos):
-                    self.spomal_callback()
-                elif self.button_increase.collidepoint(event.pos):
-                    self.pridaj_callback()
-                elif self.button_start.collidepoint(event.pos):
-                    self.start_callback()
+                if self.current_screen == Screen.MENU:
+                    if self.input_rect.collidepoint(event.pos):
+                        self.active_input = True
+                    else:
+                        self.active_input = False
+
+                    if self.button_start_menu.collidepoint(event.pos):
+                        self.meno_hraca = self.meno_input.strip()
+                        if self.meno_hraca != "":
+                            self.current_screen = Screen.GAME
+                    elif self.button_exit_menu.collidepoint(event.pos):
+                        return False
+
+                elif self.current_screen == Screen.GAME:
+                    if self.button_cancel.collidepoint(event.pos):
+                        return False
+                    elif self.button_decrease.collidepoint(event.pos):
+                        self.spomal_callback()
+                    elif self.button_increase.collidepoint(event.pos):
+                        self.pridaj_callback()
+                    elif self.button_start.collidepoint(event.pos):
+                        self.start_callback()
+
+            if event.type == pygame.KEYDOWN:
+                if self.current_screen == Screen.MENU and self.active_input:
+                    if event.key == pygame.K_RETURN:
+                        self.active_input = False
+                    elif event.key == pygame.K_BACKSPACE:
+                        self.meno_input = self.meno_input[:-1]
+                    elif len(self.meno_input) < 20:
+                        self.meno_input += event.unicode
+
         return True
 
     def set_game(self, game):
@@ -192,13 +265,17 @@ class UI:
         clock = pygame.time.Clock()
         dt = 0.0 # dt nastavujem najprv na 0.0, ale potom ho zmením - len, aby to nespadlo na chybe referenced before assignment
         self.game.running = True
+
         while self.game.running:
             self.game.running = self.handle_events()
-            if self.game:
-                self.game.update(dt)
+            if self.current_screen == Screen.MENU:
+                self.draw_menu()
+            elif self.current_screen == Screen.GAME:
+                if self.game:
+                    self.game.update(dt)
 
-            self.draw_ui(horse)
-            horse.update_animacia()
+                self.draw_ui(horse)
+                horse.update_animacia()
 
             dt = clock.tick(60) / 1000  # dt v sekundách
 
