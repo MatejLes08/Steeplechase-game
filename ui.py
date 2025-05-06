@@ -14,6 +14,8 @@ class UI:
         self.screen = pygame.display.set_mode((self.width, self.height), pygame.RESIZABLE)
         pygame.display.set_caption("Steeplchase preteky")
         self.font = pygame.font.SysFont(None, 40)
+        self.fontMetre = pygame.font.SysFont(None, 110)
+        self.fontCas = pygame.font.SysFont("Arial", 70)
 
         # farby
         self.WHITE = (255, 255, 255)
@@ -21,13 +23,16 @@ class UI:
         self.DARKGRAY = (100, 100, 100)
         self.BLACK = (0, 0, 0)
         self.ORANGE = (255, 198, 111)
+        self.GREEN = (0, 255, 0)
+        self.RED = (255, 0, 0)
+        self.YELLOW = (255, 255, 0)
 
         # premenné
         self.rychlost = 0
-        self.energia = 0
+        self.energia = 100
         self.neprejdenych = 0
         self.aktualna_draha = ""
-        self.stopky = ""
+        self.stopky = "0:00:00"
         self.rekord = Utils.najnizsi_cas()
         self.pretazenie = 0
 
@@ -54,6 +59,36 @@ class UI:
 
         
 
+        #Fukcia na vykreslenie obdlznika s energiou
+        def draw_energy(value, x, y, width=150, height=30):
+            # Uistíme sa, že hodnota je medzi 0 a 100
+            value = max(0, min(100, value))
+            
+            # Vypočítaj šírku "plného" baru
+            bar_width = int((value / 100) * width)
+
+            # Vyber farbu podľa hodnoty
+            if value > 66:
+                bar_color = self.GREEN      # zelená
+            elif value > 33:
+                bar_color = self.YELLOW    # oranžová
+            else:
+                bar_color = self.RED      # červená
+
+            # Podkladový rám
+            rect_bg = pygame.Rect(x, y, width, height)
+            pygame.draw.rect(self.screen, (150, 150, 150), rect_bg)              # tmavý podklad
+            pygame.draw.rect(self.screen, self.BLACK, rect_bg, 2)        # rám
+
+            # Plniaci sa bar
+            rect_fill = pygame.Rect(x, y, bar_width, height)
+            pygame.draw.rect(self.screen, bar_color, rect_fill)
+
+            # Text do stredu (napr. "82%")
+            text = self.font.render(f"{value}%", True, self.BLACK)
+            text_rect = text.get_rect(center=rect_bg.center)
+            self.screen.blit(text, text_rect)
+
 
         # Funkcia na vykreslenie štítku + hodnoty
         def draw_text(label, value, x, y):
@@ -61,17 +96,26 @@ class UI:
             self.screen.blit(text, (x, y))
 
         # Zobrazenie herných údajov
-        draw_text("Rýchlosť", self.rychlost, 20, 20)
-        draw_text("Energia", self.energia, 20, 60)
-        draw_text("Do cieľa", self.neprejdenych, 20, 100)
-        draw_text("Terén", self.aktualna_draha, 20, 140)
+        draw_text("Rýchlosť", self.rychlost, 20, 60)
+        draw_energy(self.energia, 91, 20)
+        #zobrazovanie textu metrov v strede hore
+        self.metre = self.fontMetre.render(str(self.neprejdenych)+"m", True,  self.BLACK)
+        #zarovnanie textu na stred šírky obrazovky
+        self.metre_rect = self.metre.get_rect(center=(self.screen.get_width() // 2, 40))
+        self.screen.blit(self.metre, self.metre_rect)
+
+        draw_text("Terén", self.aktualna_draha, 20, 100)
         if self.game:
             self.aktualna_draha = self.game.get_akt_draha()
-        draw_text("Terén", self.aktualna_draha, 20, 140)
+        draw_text("Terén", self.aktualna_draha, 20, 100)
 
-        draw_text("Čas", self.stopky, 600, 20)
-        draw_text("Rekord", self.rekord, 600, 60)
-        draw_text("Preťaženie", self.pretazenie, 600, 100)
+
+        #zobrazovanie casu
+        self.cas = self.fontCas.render(self.stopky, True,  self.BLACK)
+        self.cas_rect = self.cas.get_rect(center=(700, 40))
+        self.screen.blit(self.cas, self.cas_rect)
+        draw_text("Rekord", self.rekord, 580, 70)
+        draw_text("Preťaženie", self.pretazenie, 580, 110)
       
              # Posúvajúce sa pásy (cesta)
         if self.game:
@@ -103,10 +147,10 @@ class UI:
 
 
         # Tlačidlá
-        pygame.draw.rect(self.screen, self.GRAY, self.button_cancel)
+        pygame.draw.rect(self.screen, self.RED, self.button_cancel)
         pygame.draw.rect(self.screen, self.GRAY, self.button_decrease)
         pygame.draw.rect(self.screen, self.GRAY, self.button_increase)
-        pygame.draw.rect(self.screen, self.GRAY, self.button_start)
+        pygame.draw.rect(self.screen, self.GREEN, self.button_start)
 
         # Texty na tlačidlách
         def render_button_text(text, rect):
@@ -159,3 +203,4 @@ class UI:
             dt = clock.tick(60) / 1000  # dt v sekundách
 
         pygame.quit()
+
