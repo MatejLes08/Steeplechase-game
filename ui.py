@@ -1,9 +1,14 @@
 import pygame
+from enum import Enum
 from Utils import Utils
 from Horse import Horse
 
+class Screen(Enum):
+    MENU = 1
+    GAME = 2
+
 class UI:
-    def __init__(self, pridaj_callback, spomal_callback, start_callback, koniec_callback,gamec):
+    def __init__(self, pridaj_callback, spomal_callback, start_callback, koniec_callback, gamec):
         pygame.init()
 
         
@@ -31,11 +36,14 @@ class UI:
         self.rekord = Utils.najnizsi_cas()
         self.pretazenie = 0
 
-        # tlačidlá
+        # Tlačidlá - HRA
         self.button_cancel = pygame.Rect(32, 433, 150, 50)
         self.button_decrease = pygame.Rect(216, 433, 150, 50)
         self.button_increase = pygame.Rect(416, 433, 150, 50)
         self.button_start = pygame.Rect(632, 433, 150, 50)
+
+        # Tlačidlá - MENU
+        self.button_start_menu = pygame.Rect(300, 300, 200, 60)
 
         # callback funkcie
         self.pridaj_callback = pridaj_callback
@@ -46,7 +54,20 @@ class UI:
         # Získanie terénu z Game
         self.draha = self.game.get_terrain_path()
 
+        # Riadenie aktuálnej obrazovky
+        self.current_screen = Screen.MENU
 
+    def draw_menu(self):
+        self.screen.fill(self.ORANGE)
+        title = self.font.render("Steeplechase preteky", True, self.BLACK)
+        self.screen.blit(title, (self.width // 2 - title.get_width() // 2, 100))
+
+        pygame.draw.rect(self.screen, self.GRAY, self.button_start_menu)
+        label = self.font.render("Štart hry", True, self.BLACK)
+        label_rect = label.get_rect(center=self.button_start_menu.center)
+        self.screen.blit(label, label_rect)
+
+        pygame.display.flip()
     
 
     def draw_ui(self, horse):
@@ -64,11 +85,9 @@ class UI:
         draw_text("Rýchlosť", self.rychlost, 20, 20)
         draw_text("Energia", self.energia, 20, 60)
         draw_text("Do cieľa", self.neprejdenych, 20, 100)
-        draw_text("Terén", self.aktualna_draha, 20, 140)
         if self.game:
             self.aktualna_draha = self.game.get_akt_draha()
         draw_text("Terén", self.aktualna_draha, 20, 140)
-
         draw_text("Čas", self.stopky, 600, 20)
         draw_text("Rekord", self.rekord, 600, 60)
         draw_text("Preťaženie", self.pretazenie, 600, 100)
@@ -131,14 +150,18 @@ class UI:
             if event.type == pygame.QUIT:
                 return False
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if self.button_cancel.collidepoint(event.pos):
-                    return False
-                elif self.button_decrease.collidepoint(event.pos):
-                    self.spomal_callback()
-                elif self.button_increase.collidepoint(event.pos):
-                    self.pridaj_callback()
-                elif self.button_start.collidepoint(event.pos):
-                    self.start_callback()
+                if self.current_screen == Screen.MENU:
+                    if self.button_start_menu.collidepoint(event.pos):
+                        self.current_screen = Screen.GAME
+                elif self.current_screen == Screen.GAME:
+                    if self.button_cancel.collidepoint(event.pos):
+                        return False
+                    elif self.button_decrease.collidepoint(event.pos):
+                        self.spomal_callback()
+                    elif self.button_increase.collidepoint(event.pos):
+                        self.pridaj_callback()
+                    elif self.button_start.collidepoint(event.pos):
+                        self.start_callback()
         return True
 
     def set_game(self, game):
@@ -148,13 +171,17 @@ class UI:
         clock = pygame.time.Clock()
         dt = 0.0 # dt nastavujem najprv na 0.0, ale potom ho zmením - len, aby to nespadlo na chybe referenced before assignment
         self.game.running = True
+
         while self.game.running:
             self.game.running = self.handle_events()
-            if self.game:
-                self.game.update(dt)
+            if self.current_screen == Screen.MENU:
+                self.draw_menu()
+            elif self.current_screen == Screen.GAME:
+                if self.game:
+                    self.game.update(dt)
 
-            self.draw_ui(horse)
-            horse.update_animacia()
+                self.draw_ui(horse)
+                horse.update_animacia()
 
             dt = clock.tick(60) / 1000  # dt v sekundách
 
