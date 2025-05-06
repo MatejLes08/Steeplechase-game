@@ -15,16 +15,31 @@ class Horse:
         self.prejdene_metre = 0
         self.ostava = self.DRAHA
 
-        #vizualiacia
-        self.beh = [pygame.image.load("assets/bezi1.png"),pygame.image.load("assets/bezi2.png"),pygame.image.load("assets/bezi3.png"),pygame.image.load("assets/bezi4.png")]
-        self.chodza = [pygame.image.load("assets/chodi1.png"),pygame.image.load("assets/chodi2.png"),pygame.image.load("assets/chodi3.png"),pygame.image.load("assets/chodi4.png")]
-        self.statie = [pygame.image.load("assets/stoji.png")]
-        
+        # načítanie sprite sheetov s animáciami
+        self.beh = self.nacitaj_sprite_sheet("assets/Horse_Run.png", 60)
+        self.chodza = self.nacitaj_sprite_sheet("assets/Horse_Walk.png", 60)
+        self.statie = self.nacitaj_sprite_sheet("assets/Horse_Idle.png", 60)
+
         self.player_frame_index = 0
         self.animation_speed = 0.1
         self.current_image = self.statie[0]
         self.position_x = 70
         self.position_y = 300
+
+    def nacitaj_sprite_sheet(self, path, frame_width):
+        sheet = pygame.image.load(path)
+        sheet.set_colorkey((255, 255, 255))  # odstránenie bieleho pozadia
+
+        width, height = sheet.get_size()
+        frames = []
+
+        for i in range(width // frame_width):
+            frame = sheet.subsurface(pygame.Rect(i * frame_width, 0, frame_width, height)).copy()
+            frame = pygame.transform.flip(frame, True, False)
+            frame = pygame.transform.scale(frame, (frame.get_width() * 2, frame.get_height() * 2))
+            frames.append(frame)
+
+        return frames
 
     def pridaj_rychlost(self):
         if self.sila > 0 and self.rychlost < self.max_rychlost:

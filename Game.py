@@ -20,7 +20,7 @@ class Game:
         self.terrain = terrain.Terrain()
 
         self.posun_cesty = 0  # pixely posunu celej cesty
-        self.sirka_useku = 100  # šírka jedného úseku v px
+        self.sirka_useku = 62  # šírka jedného úseku v px
         self.running_game = False
         self.last_time = time.time()
         self.aktualny_teren = ""
