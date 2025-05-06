@@ -9,7 +9,7 @@ class UI:
         
         self.game = gamec
 
-        self.width = 800
+        self.width = 845
         self.height = 500
         self.screen = pygame.display.set_mode((self.width, self.height), pygame.RESIZABLE)
         pygame.display.set_caption("Steeplchase preteky")

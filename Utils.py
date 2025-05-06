@@ -1,4 +1,8 @@
+import requests
+
 class Utils:
+    SERVER_URL = "https://9cf54da1-84f4-45d0-b6fd-0817a0a4a654-00-2s3626w9v692a.janeway.replit.dev"
+
     @staticmethod
     def cas_na_stotiny(cas_str):
         parts = cas_str.split(":")
@@ -23,27 +27,32 @@ class Utils:
         return f"{minuty}:{sekundy:02d}:{stotiny:02d}"
 
     @staticmethod
-    def ulozit_cas(cas, nazov_suboru="casy.txt"):
-        with open(nazov_suboru, "a") as file:
-            file.write(cas + "\n")
+    def ulozit_cas(cas):
+        # Odoslanie času na server
+        try:
+            response = requests.post(
+                f"{Utils.SERVER_URL}/submit-time",
+                json={"time": cas}
+            )
+            if response.status_code == 200:
+                print(f"[✓] Čas bol odoslaný na server: {cas}")
+        except requests.RequestException as e:
+            print(f"[X] Chyba pri odosielaní času na server: {e}")
 
     @staticmethod
-    def najnizsi_cas(nazov_suboru="casy.txt"):
+    def najnizsi_cas():
         try:
-            with open(nazov_suboru, "r") as file:
-                casy = file.readlines()
-        except FileNotFoundError:
-            return "N/A"
+            response = requests.get(f"{Utils.SERVER_URL}/all-times")
+            if response.status_code == 200:
+                times = response.json().get("times", [])
+                if not times:
+                    return "N/A"
+                najnizsi = min(times, key=Utils.cas_na_stotiny)
+                return najnizsi
+        except requests.RequestException:
+            pass
+        return "N/A"
 
-        casy = [cas.strip() for cas in casy if ":" in cas]
-        casy_v_stotinach = [Utils.cas_na_stotiny(cas) for cas in casy]
-
-        if casy_v_stotinach:
-            najnizsi = min(casy_v_stotinach)
-            return Utils.stotiny_na_cas(najnizsi)
-        else:
-            return "N/A"
     @staticmethod
     def map_range(value, from_min, from_max, to_min, to_max):
-        # Prevod na nový rozsah
         return (value - from_min) * (to_max - to_min) / (from_max - from_min) + to_min
