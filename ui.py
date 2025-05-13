@@ -50,7 +50,7 @@ class UI:
         self.button_cancel = pygame.Rect(32, 433, 150, 50)
         self.button_decrease = pygame.Rect(216, 433, 150, 50)
         self.button_increase = pygame.Rect(416, 433, 150, 50)
-        self.button_start = pygame.Rect(632, 433, 150, 50)
+        
 
         # Tlačidlá - MENU
         self.button_start_menu = pygame.Rect(300, 250, 200, 50)
