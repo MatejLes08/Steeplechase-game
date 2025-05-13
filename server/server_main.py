@@ -26,12 +26,21 @@ def load_times():
                 return []
     return []
 
+def parse_time_to_seconds(time_str):
+    try:
+        minutes, seconds, hundredths = map(int, time_str.strip().split(":"))
+        total_seconds = minutes * 60 + seconds + (hundredths / 100)
+        return total_seconds
+    except:
+        return float('inf')
+
 @app.route("/")
 def home():
     all_times = load_times()
     if all_times:
-        html = "<h2>Všetky časy:</h2><ol>"
-        for t in all_times:
+        sorted_times = sorted(all_times, key=parse_time_to_seconds)
+        html = "<h2>Všetky časy (zoradené od najrýchlejšieho):</h2><ol>"
+        for t in sorted_times:
             html += f"<li>{t}</li>"
         html += "</ol>"
         return html
