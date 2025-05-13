@@ -30,7 +30,7 @@ def main():
 
     # Callback funkcie pre UI
     def pridaj_rychlost():
-        if game.running_game == False:
+        if game.running_game == False and game.prejdene_metre < game.DRAHA:
             game.start_race()
         else:
             horse.pridaj_rychlost()
@@ -48,7 +48,6 @@ def main():
     # Vytvorenie UI
     ui = UI(pridaj_callback=pridaj_rychlost,
             spomal_callback=spomal_rychlost,
-            
             koniec_callback=koniec, gamec=game)
 
     # Spustenie GUI
