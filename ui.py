@@ -8,7 +8,7 @@ class Screen(Enum):
     GAME = 2
 
 class UI:
-    def __init__(self, pridaj_callback, spomal_callback, start_callback, koniec_callback, gamec):
+    def __init__(self, pridaj_callback, spomal_callback, koniec_callback, gamec):
         pygame.init()
 
         
@@ -59,7 +59,7 @@ class UI:
         # callback funkcie
         self.pridaj_callback = pridaj_callback
         self.spomal_callback = spomal_callback
-        self.start_callback = start_callback
+        
         self.koniec_callback = koniec_callback
 
         # Získanie terénu z Game
@@ -198,7 +198,7 @@ class UI:
         pygame.draw.rect(self.screen, self.RED, self.button_cancel)
         pygame.draw.rect(self.screen, self.GRAY, self.button_decrease)
         pygame.draw.rect(self.screen, self.GRAY, self.button_increase)
-        pygame.draw.rect(self.screen, self.GREEN, self.button_start)
+        
 
         # Texty na tlačidlách
         def render_button_text(text, rect):
@@ -209,7 +209,7 @@ class UI:
         render_button_text("Zrušiť", self.button_cancel)
         render_button_text("Spomaľ", self.button_decrease)
         render_button_text("Pridaj", self.button_increase)
-        render_button_text("Štart", self.button_start)
+        
 
         #vykreslenie obrazku hráča
         self.screen.blit(horse.current_image, (horse.position_x, horse.position_y))
@@ -244,8 +244,7 @@ class UI:
                         self.spomal_callback()
                     elif self.button_increase.collidepoint(event.pos):
                         self.pridaj_callback()
-                    elif self.button_start.collidepoint(event.pos):
-                        self.start_callback()
+                    
 
             if event.type == pygame.KEYDOWN:
                 if self.current_screen == Screen.MENU and self.active_input:
