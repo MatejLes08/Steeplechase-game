@@ -47,7 +47,6 @@ class Horse:
             if self.rychlost > self.max_rychlost:
                 self.rychlost = self.max_rychlost
 
-
     def spomal_rychlost(self):
         if self.rychlost > 0:
             self.rychlost -= 4
@@ -83,14 +82,13 @@ class Horse:
 
         self.sila -= self.pretazenie         # odoberanie energie kona
         self.prejdene_metre += self.rychlost * zrychlenie / 3.6 * 0.01 #obnovovanie prejdených metrov
-        
 
     def update_animacia(self):
         self.player_frame_index += self.animation_speed
 
         if self.rychlost <= 0:
             frames = self.statie
-            
+
         elif self.rychlost <= 12:
             frames = self.chodza
             self.animation_speed = 0.055*self.rychlost/24*len(self.chodza) #vypočitanie rýchlosti animacie podla rychlosti kona a počtu obrazkov
@@ -105,12 +103,20 @@ class Horse:
 
         self.current_image = frames[int(self.player_frame_index)]
 
+    def detekuj_koliziu_s_prekazkami(self, prekazky):
+        kon_rect = pygame.Rect(self.position_x, self.position_y, self.current_image.get_width(), self.current_image.get_height())
+        for prekazka in prekazky:
+            if kon_rect.colliderect(prekazka):
+                self.sila -= 10
+                if self.sila < 0:
+                    self.sila = 0
+                break
 
     def get_rychlost(self):
         return self.rychlost
 
     def get_sila(self):
         return self.sila
-    
+
     def get_ostava(self):
         return round(self.DRAHA - self.prejdene_metre)

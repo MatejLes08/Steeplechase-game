@@ -40,8 +40,6 @@ def main():
         horse.spomal_rychlost()
         game.kon_rychlost = horse.get_rychlost()
 
-        
-
     def koniec():
         ui.zatvor()
 
@@ -53,8 +51,6 @@ def main():
     # Spustenie GUI
     ui.set_game(game)
     ui.run(horse)
-
-
 
 
 if __name__ == "__main__":

@@ -24,6 +24,9 @@ class Terrain:
         self.miesto_sprinterskeho_pasma = data["miesto_sprinterskeho_pasma"]
         self.napajadla = data["napajadla"]
 
+        # pozície prekážok
+        self.prekazky = [1700, 1500, 100, 1200, 1800]  
+
     def zisti_pasmo(self, ostava):
         oddych_cis = self.ODYCH_DEFAULT
         zrychlenie = self.ZRYCHLENIE_DEFAULT
@@ -48,3 +51,8 @@ class Terrain:
 
         return oddych_cis, zrychlenie, narocnost, bonus, terrain_type
 
+    # Funkcia na kontrolu nárazu do prekážky
+    def kontroluj_naraz(self, pozicia):
+        if pozicia in self.prekazky:
+            return True  # Narazil si do prekážky
+        return False

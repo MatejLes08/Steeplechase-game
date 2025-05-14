@@ -30,8 +30,6 @@ class Game:
         self.cas = 0
         self.minuty = 0
         self.running_game = True 
-
-
         self.ostava = self.DRAHA
         
     def update(self, dt):  # dt = čas od poslednej aktualizácie
@@ -39,13 +37,15 @@ class Game:
             return
 
         self.cas += dt
-        # rovnaký výpočet logiky ako doteraz, ale bez time.sleep()
-
         if int(self.cas) >= 60:
             self.cas -= 60
             self.minuty += 1
 
         oddych_cis, zrychlenie, narocnost, bonus, typ_terenu = self.terrain.zisti_pasmo(self.ostava)
+
+        # Kontrola nárazu do prekážky na preddefinovaných metroch
+        if self.terrain.kontroluj_naraz(self.prejdene_metre):
+            self.horse.stratena_energia()  # Zníženie energie koňa po náraze do prekážky
 
         self.horse.aktualizuj_silu(oddych_cis, zrychlenie, narocnost, bonus)
         rych = self.horse.get_rychlost()
@@ -54,26 +54,23 @@ class Game:
         self.prejdene_metre = self.horse.prejdene_metre
         self.pretazenie = self.horse.pretazenie
 
-        
         cas_str = f"{self.minuty}:{int(self.cas):02d}:{int((self.cas - int(self.cas)) * 100):02d}"
-        self.update_ui(int(rych * zrychlenie), self.ostava, int(sila), cas_str, self.pretazenie*100)
-
+        self.update_ui(int(rych * zrychlenie), self.ostava, int(sila), cas_str, self.pretazenie * 100)
 
         if self.prejdene_metre >= self.DRAHA:
             self.running_game = False
             Utils.ulozit_cas(cas_str)
             self.update_record(self.najnizsi_cas())
 
-        self.posun_cesty += rych * dt * 11  # aktualizuj posun v pixeloch
-        self.aktualny_teren = typ_terenu  # pre UI
+        self.posun_cesty += rych * dt * 11
+        self.aktualny_teren = typ_terenu
 
     def get_akt_draha(self):
         return self.aktualny_teren
-    
 
     def najnizsi_cas(self):
         return Utils.najnizsi_cas()
-    
+
     def get_terrain_path(self):
         draha = []
         for meter in range(2000, 0, -1):
