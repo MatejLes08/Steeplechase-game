@@ -1,7 +1,8 @@
 import requests
 
 class Utils:
-    SERVER_URL = "https://9cf54da1-84f4-45d0-b6fd-0817a0a4a654-00-2s3626w9v692a.janeway.replit.dev"
+    SERVER_URLh = "https://9cf54da1-84f4-45d0-b6fd-0817a0a4a654-00-2s3626w9v692a.janeway.replit.dev"
+    SERVER_URL = "https://2fc243c1-0d24-4361-8a3a-90e456b711aa-00-ddze6lg31kxv.picard.replit.dev/"
 
     @staticmethod
     def cas_na_stotiny(cas_str):
@@ -27,17 +28,21 @@ class Utils:
         return f"{minuty}:{sekundy:02d}:{stotiny:02d}"
 
     @staticmethod
-    def ulozit_cas(cas):
-        # Odoslanie času na server
+    def ulozit_cas(cas, meno=""):
+        # Odoslanie času a mena na server
         try:
             response = requests.post(
                 f"{Utils.SERVER_URL}/submit-time",
-                json={"time": cas}
+                json={"time": cas, "name": meno}
             )
             if response.status_code == 200:
-                print(f"[✓] Čas bol odoslaný na server: {cas}")
+                print(f"[✓] Čas a meno boli odoslané na server: {meno} - {cas}")
         except requests.RequestException as e:
-            print(f"[X] Chyba pri odosielaní času na server: {e}")
+            print(f"[X] Chyba pri odosielaní času a mena na server: {e}")
+
+    @staticmethod
+    def extrahuj_cas_na_stotiny(zaznam):
+        return Utils.cas_na_stotiny(zaznam["time"])
 
     @staticmethod
     def najnizsi_cas():
@@ -47,8 +52,8 @@ class Utils:
                 times = response.json().get("times", [])
                 if not times:
                     return "N/A"
-                najnizsi = min(times, key=Utils.cas_na_stotiny)
-                return najnizsi
+                najnizsi = min(times, key=Utils.extrahuj_cas_na_stotiny)
+                return najnizsi["time"]  # Vraciam iba čas ako reťazec
         except requests.RequestException:
             pass
         return "N/A"

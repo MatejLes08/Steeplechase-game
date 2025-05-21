@@ -2,10 +2,11 @@ import time
 import random
 import terrain
 from Horse import Horse
-from Utils import Utils  
+from Utils import Utils
+
 
 class Game:
-    def __init__(self, update_ui_callback, update_record_callback, horse):
+    def __init__(self, update_ui_callback, update_record_callback, horse, meno_hraca=""):
         self.DRAHA = 2000
         self.prejdene_metre = 0
         self.ostava = self.DRAHA
@@ -16,6 +17,7 @@ class Game:
         self.update_ui = update_ui_callback
         self.update_record = update_record_callback
         self.horse = horse
+        self.meno_hraca = meno_hraca  # Nový atribút pre meno hráča
 
         self.terrain = terrain.Terrain()
 
@@ -29,9 +31,9 @@ class Game:
         self.prejdene_metre = 0
         self.cas = 0
         self.minuty = 0
-        self.running_game = True 
+        self.running_game = True
         self.ostava = self.DRAHA
-        
+
     def update(self, dt):  # dt = čas od poslednej aktualizácie
         if not self.running_game:
             return
@@ -59,7 +61,7 @@ class Game:
 
         if self.prejdene_metre >= self.DRAHA:
             self.running_game = False
-            Utils.ulozit_cas(cas_str)
+            Utils.ulozit_cas(cas_str, self.meno_hraca)  # Odoslanie času a mena
             self.update_record(self.najnizsi_cas())
 
         self.posun_cesty += rych * dt * 11
@@ -85,3 +87,6 @@ class Game:
                     break
             draha.append(typ)
         return draha
+
+    def set_meno_hraca(self, meno):
+        self.meno_hraca = meno  # Metóda na aktualizáciu mena

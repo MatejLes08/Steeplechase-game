@@ -5,7 +5,7 @@ import os
 app = Flask(__name__)
 RECORD_FILE = "casy.json"
 
-def save_time(time):
+def save_time(time, name=""):
     times = []
     if os.path.exists(RECORD_FILE):
         with open(RECORD_FILE, "r") as file:
@@ -13,7 +13,7 @@ def save_time(time):
                 times = json.load(file)
             except (json.JSONDecodeError, ValueError):
                 times = []
-    times.append(time)
+    times.append({"time": time, "name": name})
     with open(RECORD_FILE, "w") as file:
         json.dump(times, file, ensure_ascii=False, indent=2)
 
@@ -38,10 +38,13 @@ def parse_time_to_seconds(time_str):
 def home():
     all_times = load_times()
     if all_times:
-        sorted_times = sorted(all_times, key=parse_time_to_seconds)
+        # Zoradiť podľa času
+        sorted_times = sorted(all_times, key=lambda x: parse_time_to_seconds(x["time"]))
         html = "<h2>Všetky časy (zoradené od najrýchlejšieho):</h2><ol>"
-        for t in sorted_times:
-            html += f"<li>{t}</li>"
+        for entry in sorted_times:
+            time = entry["time"]
+            name = entry["name"] if entry["name"] else "Anonymný hráč"
+            html += f"<li>{name}: {time}</li>"
         html += "</ol>"
         return html
     else:
@@ -51,8 +54,9 @@ def home():
 def submit_time():
     data = request.get_json()
     new_time = data.get("time", "")
-    save_time(new_time)
-    return jsonify({"message": "Čas bol úspešne uložený!", "time": new_time}), 200
+    name = data.get("name", "")
+    save_time(new_time, name)
+    return jsonify({"message": "Čas a meno boli úspešne uložené!", "time": new_time, "name": name}), 200
 
 @app.route("/all-times", methods=["GET"])
 def all_times():
@@ -60,3 +64,4 @@ def all_times():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=3000)
+
