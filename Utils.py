@@ -1,11 +1,13 @@
 import requests
 
 class Utils:
-    SERVER_URLh = "https://9cf54da1-84f4-45d0-b6fd-0817a0a4a654-00-2s3626w9v692a.janeway.replit.dev"
-    SERVER_URL = "https://2fc243c1-0d24-4361-8a3a-90e456b711aa-00-ddze6lg31kxv.picard.replit.dev/"
+    # URL adresy serverov pre odosielanie a získavanie údajov
+    SERVER_URL = "https://9cf54da1-84f4-45d0-b6fd-0817a0a4a654-00-2s3626w9v692a.janeway.replit.dev"
+    SERVER_URLt = "https://2fc243c1-0d24-4361-8a3a-90e456b711aa-00-ddze6lg31kxv.picard.replit.dev/"
 
     @staticmethod
     def cas_na_stotiny(cas_str):
+        # Prevedie čas vo formáte "minúty:sekundy:stotiny" na celkový počet stotín sekundy
         parts = cas_str.split(":")
         if len(parts) == 3:
             minuty, sekundy, stotiny = parts
@@ -21,6 +23,7 @@ class Utils:
 
     @staticmethod
     def stotiny_na_cas(stotiny):
+        # Prevedie celkový počet stotín sekundy na formát "minúty:sekundy:stotiny"
         minuty = stotiny // 6000
         zvysok = stotiny % 6000
         sekundy = zvysok // 100
@@ -29,7 +32,7 @@ class Utils:
 
     @staticmethod
     def ulozit_cas(cas, meno=""):
-        # Odoslanie času a mena na server
+        # Odosiela čas a meno hráča na server cez POST požiadavku
         try:
             response = requests.post(
                 f"{Utils.SERVER_URL}/submit-time",
@@ -42,10 +45,12 @@ class Utils:
 
     @staticmethod
     def extrahuj_cas_na_stotiny(zaznam):
+        # Extrahuje čas zo záznamu a prevedie ho na stotiny pre porovnanie
         return Utils.cas_na_stotiny(zaznam["time"])
 
     @staticmethod
     def najnizsi_cas():
+        # Získa najnižší čas zo servera, vráti ho ako reťazec alebo "N/A" pri chybe
         try:
             response = requests.get(f"{Utils.SERVER_URL}/all-times")
             if response.status_code == 200:
@@ -60,4 +65,5 @@ class Utils:
 
     @staticmethod
     def map_range(value, from_min, from_max, to_min, to_max):
+        # Lineárne mapuje hodnotu z jedného rozsahu na druhý
         return (value - from_min) * (to_max - to_min) / (from_max - from_min) + to_min
