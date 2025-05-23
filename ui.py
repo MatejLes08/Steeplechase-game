@@ -1,5 +1,6 @@
 import pygame
 import requests
+import webbrowser
 from enum import Enum
 from Utils import Utils
 from Horse import Horse
@@ -71,6 +72,8 @@ class UI:
         mid_x = self.width // 2
         self.button_play_map = pygame.Rect(mid_x + 70, 380, 120, 40)
         self.button_back_map = pygame.Rect(mid_x + 220, 380, 120, 40)
+        # Nové tlačidlo pre server
+        self.button_server = pygame.Rect(20, self.height - 70, 40, 40)
 
         # Callback funkcie pre volanie od Game logiky
         self.pridaj_callback = pridaj_callback
@@ -80,8 +83,11 @@ class UI:
         # Cesta k obrázkom terénu z Game modulu
         self.draha = self.game.get_terrain_path()
         # Údaje pre rebríček (zatiaľ prázdne, budú načítané zo servera)
-        self.scores = []  # list tuplov (poradie, meno, čas)
+        self.scores = []  # list tupľov (poradie, meno, čas)
         self.my_score = None
+        # Stav servera
+        self.server_online = False
+        self.server_url = "https://9cf54da1-84f4-45d0-b6fd-0817a0a4a654-00-2s3626w9v692a.janeway.replit.dev/"
 
         # Aktuálna obrazovka (štartujeme v MENU)
         self.current_screen = Screen.MENU
@@ -167,10 +173,17 @@ class UI:
             placeholder = self.font.render("Žiadne údaje", True, self.DARKGRAY)
             self.screen.blit(placeholder, (20, y0))
         else:
-            # Vypíše prvých 10 časov a mien
+            # Vypíšem prvých 10 časov a mien
             for i, (rank, name, time_str) in enumerate(self.scores[:10]):
                 txt = f"{rank}. {name}: {time_str}"
                 self.screen.blit(self.font.render(txt, True, self.BLACK), (20, y0 + i * 30))
+
+        # Tlačidlo a stav servera
+        pygame.draw.rect(self.screen, self.GRAY, self.button_server)
+        self.render_button_text(self.screen, self.font, "->", self.button_server)
+        if not self.server_online:
+            offline_text = self.font.render("Stránka je offline", True, self.DARKGRAY)
+            self.screen.blit(offline_text, (self.button_server.right + 10, self.height - 60))
 
         # --- pravá strana: podrobnosti mapy ---
         # Získanie názvu mapy cez volanie metódy (fallback na "MAPA")
@@ -330,15 +343,15 @@ class UI:
                         self.meno_hraca = self.meno_input.strip()
                         # Zachované pre odosielanie mena
                         self.game.set_meno_hraca(self.meno_hraca)
-                        # Načítanie rebríčka zo servera
+                        # Načítanie rebríčka zo servera a kontrola stavu servera
                         try:
-                            response = requests.get(f"{Utils.SERVER_URL}/all-times")
+                            response = requests.get(f"{Utils.SERVER_URL}/all-times", timeout=2)
                             if response.status_code == 200:
                                 try:
                                     times = response.json().get("times", [])
                                     # Zoradiť časy od najrýchlejšieho
                                     sorted_times = sorted(times, key=Utils.extrahuj_cas_na_stotiny)
-                                    # Vytvoriť zoznam tuplov (poradie, meno, čas)
+                                    # Vytvoriť zoznam tupľov (poradie, meno, čas)
                                     self.scores = [(i + 1, entry["name"] or "Anonymný hráč", entry["time"]) for i, entry in enumerate(sorted_times)]
                                     # Nájdenie hráčovho skóre (ak existuje)
                                     player_scores = [s for s in self.scores if s[1].strip().lower() == self.meno_hraca.strip().lower()]
@@ -349,19 +362,28 @@ class UI:
                             else:
                                 self.scores = []
                                 self.my_score = None
+                            # Kontrola stavu servera
+                            try:
+                                server_response = requests.get(self.server_url, timeout=2)
+                                self.server_online = server_response.status_code == 200
+                            except requests.RequestException:
+                                self.server_online = False
                         except requests.RequestException:
                             self.scores = []
                             self.my_score = None
+                            self.server_online = False
                         self.current_screen = Screen.MAP_VIEW
                     elif self.button_exit_menu.collidepoint(event.pos):
                         return False
-                # MAP_VIEW obrazovka: prehľad mapy
+                # MAP_VIEW obrazovka: prehľad mapy a tlačidlo servera
                 elif self.current_screen == Screen.MAP_VIEW:
                     if self.button_play_map.collidepoint(event.pos):
                         # Prepne len obrazovku, hra sa spustí v draw_ui/Game logike
                         self.current_screen = Screen.GAME
                     elif self.button_back_map.collidepoint(event.pos):
                         self.current_screen = Screen.MENU
+                    elif self.button_server.collidepoint(event.pos) and self.server_online:
+                        webbrowser.open(self.server_url)
                 # GAME obrazovka: pôvodné tlačidlá v hre
                 elif self.current_screen == Screen.GAME:
                     if self.button_cancel.collidepoint(event.pos):
@@ -377,9 +399,9 @@ class UI:
                     self.meno_hraca = self.meno_input.strip()
                     # Zachované pre odosielanie mena
                     self.game.set_meno_hraca(self.meno_hraca)
-                    # Načítanie rebríčka zo servera
+                    # Načítanie rebríčka zo servera a kontrola stavu servera
                     try:
-                        response = requests.get(f"{Utils.SERVER_URL}/all-times")
+                        response = requests.get(f"{Utils.SERVER_URL}/all-times", timeout=2)
                         if response.status_code == 200:
                             try:
                                 times = response.json().get("times", [])
@@ -396,9 +418,16 @@ class UI:
                         else:
                             self.scores = []
                             self.my_score = None
+                        # Kontrola stavu servera
+                        try:
+                            server_response = requests.get(self.server_url, timeout=2)
+                            self.server_online = server_response.status_code == 200
+                        except requests.RequestException:
+                            self.server_online = False
                     except requests.RequestException:
                         self.scores = []
                         self.my_score = None
+                        self.server_online = False
                     self.current_screen = Screen.MAP_VIEW
                 elif event.key == pygame.K_BACKSPACE:
                     self.meno_input = self.meno_input[:-1]
