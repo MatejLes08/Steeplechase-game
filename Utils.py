@@ -50,18 +50,18 @@ class Utils:
 
     @staticmethod
     def najnizsi_cas():
-        # Získa najnižší čas zo servera, vráti ho ako reťazec alebo "N/A" pri chybe
+        # Získa najnižší čas a časovú pečiatku zo servera, vráti ich ako tuple alebo ("N/A", "Není známo") pri chybe
         try:
             response = requests.get(f"{Utils.SERVER_URL}/all-times")
             if response.status_code == 200:
                 times = response.json().get("times", [])
                 if not times:
-                    return "N/A"
+                    return "N/A", "Neviem"
                 najnizsi = min(times, key=Utils.extrahuj_cas_na_stotiny)
-                return najnizsi["time"]  # Vraciam iba čas ako reťazec
+                return najnizsi["time"], najnizsi.get("timestamp", "Není známo")
         except requests.RequestException:
             pass
-        return "N/A"
+        return "N/A", "Není známo"
 
     @staticmethod
     def map_range(value, from_min, from_max, to_min, to_max):

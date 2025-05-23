@@ -8,7 +8,7 @@ def main():
     horse = Horse()
 
     # Vytvorenie objektu Game
-    game = Game(update_ui_callback=None, update_record_callback=None, horse = horse)  # Dočasne None
+    game = Game(update_ui_callback=None, update_record_callback=None, horse=horse)  # Dočasne None
 
     # Funkcia na aktualizovanie UI počas pretekov
     def update_ui(rychlost, ostava, sila, cas_str, pretazenie):
@@ -17,12 +17,13 @@ def main():
         ui.energia = sila
         ui.stopky = cas_str
         ui.pretazenie = pretazenie
-        
+
         ui.draw_ui(horse)
 
     # Funkcia na aktualizáciu rekordu po dojazde
-    def update_record(record):
-        ui.rekord = record
+    def update_record(cas, timestamp):
+        # Aktualizuje rekord v UI (použije iba čas, ignoruje timestamp)
+        ui.rekord = cas
 
     # nastavenie callbackov
     game.update_ui = update_ui

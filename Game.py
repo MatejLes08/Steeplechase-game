@@ -62,7 +62,7 @@ class Game:
         if self.prejdene_metre >= self.DRAHA:
             self.running_game = False
             Utils.ulozit_cas(cas_str, self.meno_hraca)  # Odoslanie času a mena
-            self.update_record(self.najnizsi_cas())
+            self.update_record(*self.najnizsi_cas())  # Aktualizácia rekordu s časom a časovou pečiatkou
 
         self.posun_cesty += rych * dt * 11
         self.aktualny_teren = typ_terenu
@@ -71,6 +71,7 @@ class Game:
         return self.aktualny_teren
 
     def najnizsi_cas(self):
+        # Vráti najnižší čas a časovú pečiatku ako tuple
         return Utils.najnizsi_cas()
 
     def get_terrain_path(self):

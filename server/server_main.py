@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 import json
 import os
+from datetime import datetime, timedelta
 
 # Inicializácia Flask aplikácie
 app = Flask(__name__)
@@ -8,7 +9,7 @@ app = Flask(__name__)
 RECORD_FILE = "casy.json"
 
 def save_time(time, name=""):
-    # Uloží čas a meno hráča do JSON súboru
+    # Uloží čas, meno hráča a časovú pečiatku do JSON súboru
     times = []
     if os.path.exists(RECORD_FILE):
         with open(RECORD_FILE, "r") as file:
@@ -17,7 +18,9 @@ def save_time(time, name=""):
             except (json.JSONDecodeError, ValueError):
                 # Ak súbor nie je platný JSON, inicializuje prázdny zoznam
                 times = []
-    times.append({"time": time, "name": name})
+    # Vytvorenie časovej pečiatky vo formáte DD.MM.YYYY HH:MM:SS s korekciou +2 hodiny
+    timestamp = (datetime.now() + timedelta(hours=2)).strftime("%d.%m.%Y %H:%M:%S")
+    times.append({"time": time, "name": name, "timestamp": timestamp})
     with open(RECORD_FILE, "w") as file:
         # Uloží aktualizovaný zoznam časov do súboru
         json.dump(times, file, ensure_ascii=False, indent=2)
@@ -42,18 +45,30 @@ def parse_time_to_seconds(time_str):
         # Vráti nekonečno pri chybe parsovania pre účely triedenia
         return float('inf')
 
+def sort_key(entry):
+    # Kľúčová funkcia pre triedenie časov podľa času prevedeného na sekundy
+    return parse_time_to_seconds(entry["time"])
+
 @app.route("/")
 def home():
     # Zobrazí HTML stránku so zoradeným zoznamom časov
     all_times = load_times()
     if all_times:
-        # Zoradí časy od najrýchlejšieho po najpomalší
-        sorted_times = sorted(all_times, key=lambda x: parse_time_to_seconds(x["time"]))
-        html = "<h2>Všetky časy (zoradené od najrýchlejšieho):</h2><ol>"
+        # Zoradí časy od najrýchlejšieho po najpomalší pomocou sort_key
+        sorted_times = sorted(all_times, key=sort_key)
+        # Vytvorí HTML s väčším riadkovaním medzi položkami
+        html = """
+        <style>
+            li { margin-bottom: 15px; }
+        </style>
+        <h2>Všetky časy (zoradené od najrýchlejšieho):</h2>
+        <ol>
+        """
         for entry in sorted_times:
             time = entry["time"]
             name = entry["name"] if entry["name"] else "Anonymný hráč"
-            html += f"<li>{name}: {time}</li>"
+            timestamp = entry.get("timestamp", "Není známo")
+            html += f"<li>{time} - {name} ({timestamp})</li>"
         html += "</ol>"
         return html
     else:

@@ -47,7 +47,8 @@ class UI:
         self.neprejdenych = 0
         self.aktualna_draha = ""
         self.stopky = "0:00:00"
-        self.rekord = Utils.najnizsi_cas()
+        # Inicializácia rekordu (použije iba čas z tuple (čas, timestamp))
+        self.rekord = Utils.najnizsi_cas()[0] if isinstance(Utils.najnizsi_cas(), tuple) else Utils.najnizsi_cas()
         self.pretazenie = 0
 
         # Premenné pre meno hráča a vstupné pole
@@ -373,6 +374,10 @@ class UI:
     def set_game(self, game):
         # Umožňuje neskôr zmeniť referenciu na game objekt
         self.game = game
+
+    def update_record(self, cas, timestamp):
+        # Aktualizuje rekord (použije iba čas, ignoruje timestamp)
+        self.rekord = cas
 
     def run(self, horse):
         # Hlavná slučka aplikácie
