@@ -1,4 +1,5 @@
 import pygame
+import requests
 from enum import Enum
 from Utils import Utils
 from Horse import Horse
@@ -78,8 +79,8 @@ class UI:
 
         # Cesta k obrázkom terénu z Game modulu
         self.draha = self.game.get_terrain_path()
-        # Údaje pre rebríček (zatiaľ prázdne, fallbacky neskôr)
-        self.scores = []  # list tupľov (poradie, meno, čas)
+        # Údaje pre rebríček (zatiaľ prázdne, budú načítané zo servera)
+        self.scores = []  # list tuplov (poradie, meno, čas)
         self.my_score = None
 
         # Aktuálna obrazovka (štartujeme v MENU)
@@ -144,7 +145,7 @@ class UI:
     def draw_map_view(self):
         """
         Vykreslí výber mapy rozdelený na dve časti:
-          - ľavá: rebríček
+          - ľavá: rebríček s top 10 časmi a menami zo servera
           - pravá: podrobnosti mapy (názov, obrázok, tlačidlá)
         """
         self.screen.fill(self.ORANGE)
@@ -166,19 +167,10 @@ class UI:
             placeholder = self.font.render("Žiadne údaje", True, self.DARKGRAY)
             self.screen.blit(placeholder, (20, y0))
         else:
-            # Inak vypíšem prvých 5
-            for i, (rank, name, time_str) in enumerate(self.scores[:5]):
-                txt = f"{rank}. {name}  {time_str}"
-                self.screen.blit(self.font.render(txt, True, self.BLACK), (20, y0 + i * 40))
-            # Kreslím oddelovaciu čiaru pod piatym miestom
-            pygame.draw.line(self.screen, self.DARKGRAY,
-                             (20, y0 + 5 * 40 + 10),
-                             (half - 20, y0 + 5 * 40 + 10), 2)
-            # vypíšem aj tvoje miesto červeným textom (ak existuje)
-            if self.my_score:
-                r, n, t = self.my_score
-                txt = f"{r}. {n}  {t}"
-                self.screen.blit(self.font.render(txt, True, self.RED), (20, y0 + 5 * 40 + 30))
+            # Vypíše prvých 10 časov a mien
+            for i, (rank, name, time_str) in enumerate(self.scores[:10]):
+                txt = f"{rank}. {name}: {time_str}"
+                self.screen.blit(self.font.render(txt, True, self.BLACK), (20, y0 + i * 30))
 
         # --- pravá strana: podrobnosti mapy ---
         # Získanie názvu mapy cez volanie metódy (fallback na "MAPA")
@@ -338,6 +330,28 @@ class UI:
                         self.meno_hraca = self.meno_input.strip()
                         # Zachované pre odosielanie mena
                         self.game.set_meno_hraca(self.meno_hraca)
+                        # Načítanie rebríčka zo servera
+                        try:
+                            response = requests.get(f"{Utils.SERVER_URL}/all-times")
+                            if response.status_code == 200:
+                                try:
+                                    times = response.json().get("times", [])
+                                    # Zoradiť časy od najrýchlejšieho
+                                    sorted_times = sorted(times, key=Utils.extrahuj_cas_na_stotiny)
+                                    # Vytvoriť zoznam tuplov (poradie, meno, čas)
+                                    self.scores = [(i + 1, entry["name"] or "Anonymný hráč", entry["time"]) for i, entry in enumerate(sorted_times)]
+                                    # Nájdenie hráčovho skóre (ak existuje)
+                                    player_scores = [s for s in self.scores if s[1].strip().lower() == self.meno_hraca.strip().lower()]
+                                    self.my_score = player_scores[0] if player_scores else None
+                                except (ValueError, KeyError):
+                                    self.scores = []
+                                    self.my_score = None
+                            else:
+                                self.scores = []
+                                self.my_score = None
+                        except requests.RequestException:
+                            self.scores = []
+                            self.my_score = None
                         self.current_screen = Screen.MAP_VIEW
                     elif self.button_exit_menu.collidepoint(event.pos):
                         return False
@@ -363,6 +377,28 @@ class UI:
                     self.meno_hraca = self.meno_input.strip()
                     # Zachované pre odosielanie mena
                     self.game.set_meno_hraca(self.meno_hraca)
+                    # Načítanie rebríčka zo servera
+                    try:
+                        response = requests.get(f"{Utils.SERVER_URL}/all-times")
+                        if response.status_code == 200:
+                            try:
+                                times = response.json().get("times", [])
+                                # Zoradiť časy od najrýchlejšieho
+                                sorted_times = sorted(times, key=Utils.extrahuj_cas_na_stotiny)
+                                # Vytvoriť zoznam tupľov (poradie, meno, čas)
+                                self.scores = [(i + 1, entry["name"] or "Anonymný hráč", entry["time"]) for i, entry in enumerate(sorted_times)]
+                                # Nájdenie hráčovho skóre (ak existuje)
+                                player_scores = [s for s in self.scores if s[1].strip().lower() == self.meno_hraca.strip().lower()]
+                                self.my_score = player_scores[0] if player_scores else None
+                            except (ValueError, KeyError):
+                                self.scores = []
+                                self.my_score = None
+                        else:
+                            self.scores = []
+                            self.my_score = None
+                    except requests.RequestException:
+                        self.scores = []
+                        self.my_score = None
                     self.current_screen = Screen.MAP_VIEW
                 elif event.key == pygame.K_BACKSPACE:
                     self.meno_input = self.meno_input[:-1]
