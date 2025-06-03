@@ -1,5 +1,4 @@
 import time
-import random
 import terrain
 from Horse import Horse
 from Utils import Utils
@@ -17,7 +16,7 @@ class Game:
         self.update_ui = update_ui_callback
         self.update_record = update_record_callback
         self.horse = horse
-        self.meno_hraca = meno_hraca  # Nový atribút pre meno hráča
+        self.meno_hraca = meno_hraca
 
         self.terrain = terrain.Terrain()
 
@@ -34,7 +33,7 @@ class Game:
         self.running_game = True
         self.ostava = self.DRAHA
 
-    def update(self, dt):  # dt = čas od poslednej aktualizácie
+    def update(self, dt):
         if not self.running_game:
             return
 
@@ -45,9 +44,8 @@ class Game:
 
         oddych_cis, zrychlenie, narocnost, bonus, typ_terenu = self.terrain.zisti_pasmo(self.ostava)
 
-        # Kontrola nárazu do prekážky na preddefinovaných metroch
         if self.terrain.kontroluj_naraz(self.prejdene_metre):
-            self.horse.stratena_energia()  # Zníženie energie koňa po náraze do prekážky
+            self.horse.stratena_energia()
 
         self.horse.aktualizuj_silu(oddych_cis, zrychlenie, narocnost, bonus)
         rych = self.horse.get_rychlost()
@@ -61,8 +59,8 @@ class Game:
 
         if self.prejdene_metre >= self.DRAHA:
             self.running_game = False
-            Utils.ulozit_cas(cas_str, self.meno_hraca)  # Odoslanie času a mena
-            self.update_record(*self.najnizsi_cas())  # Aktualizácia rekordu s časom a časovou pečiatkou
+            Utils.ulozit_cas(cas_str, self.meno_hraca)
+            self.update_record(*self.najnizsi_cas())
 
         self.posun_cesty += rych * dt * 11
         self.aktualny_teren = typ_terenu
@@ -71,23 +69,45 @@ class Game:
         return self.aktualny_teren
 
     def najnizsi_cas(self):
-        # Vráti najnižší čas a časovú pečiatku ako tuple
         return Utils.najnizsi_cas()
 
+    def get_akt_draha_at(self, x_position):
+        """
+        Vypočíta, aký typ terénu je na danom x pixeli (na obrazovke),
+        prepočítané podľa posunu a šírky úseku.
+        """
+        # Zisti, koľko metrov od začiatku trate zodpovedá tomuto x
+        meter = int(self.prejdene_metre + x_position / self.sirka_useku)
+        meter = max(0, min(meter, self.DRAHA))  # clamp na rozsah trate
+
+        _, _, _, _, pasmo = self.terrain.zisti_pasmo(self.DRAHA - meter)
+
+        if "Náročné" in pasmo:
+            return "narocne"
+        elif "Šprintérske" in pasmo:
+            return "sprinterske"
+        elif "Napájadlo" in pasmo:
+            return "napajadlo"
+        else:
+            return "cesta"
+
     def get_terrain_path(self):
+        """
+        Vracia zoznam typov terénu pre každý meter trate (0 až 1999).
+        """
         draha = []
-        for meter in range(2000, 0, -1):
-            typ = "Cesta"
-            if self.terrain.miesto_narocneho_pasma >= meter >= self.terrain.miesto_narocneho_pasma - self.terrain.NAROCNE_PASMO_RANGE:
+        for meter in range(0, self.DRAHA):  # zľava doprava (0 -> 1999)
+            _, _, _, _, pasmo = self.terrain.zisti_pasmo(self.DRAHA - meter)
+            if "Náročné" in pasmo:
                 typ = "Náročné pásmo"
-            elif self.terrain.miesto_sprinterskeho_pasma >= meter >= self.terrain.miesto_sprinterskeho_pasma - self.terrain.SPRINTERSKE_PASMO_RANGE:
+            elif "Šprintérske" in pasmo:
                 typ = "Šprintérske pásmo"
-            for napajadlo in self.terrain.napajadla:
-                if napajadlo >= meter >= napajadlo - self.terrain.NAPAJADLO_RANGE:
-                    typ = "Napájadlo"
-                    break
+            elif "Napájadlo" in pasmo:
+                typ = "Napájadlo"
+            else:
+                typ = "Cesta"
             draha.append(typ)
         return draha
 
     def set_meno_hraca(self, meno):
-        self.meno_hraca = meno  # Metóda na aktualizáciu mena
+        self.meno_hraca = meno

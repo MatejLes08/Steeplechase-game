@@ -16,9 +16,9 @@ class Horse:
         self.ostava = self.DRAHA
 
         # načítanie sprite sheetov s animáciami
-        self.beh = self.nacitaj_sprite_sheet("assets/Horse_Run.png", 60)
-        self.chodza = self.nacitaj_sprite_sheet("assets/Horse_Walk.png", 60)
-        self.statie = self.nacitaj_sprite_sheet("assets/Horse_Idle.png", 60)
+        self.beh = self.nacitaj_sprite_sheet("assets/animacia/Horse_Run.png", 60)
+        self.chodza = self.nacitaj_sprite_sheet("assets/animacia/Horse_Walk.png", 60)
+        self.statie = self.nacitaj_sprite_sheet("assets/animacia/Horse_Idle.png", 60)
 
         self.player_frame_index = 0
         self.animation_speed = 0.1
