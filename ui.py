@@ -11,6 +11,8 @@ class Screen(Enum):
     MENU = 1
     MAP_VIEW = 2
     GAME = 3
+    PAUSE = 4
+
 
 
 class UI:
@@ -63,6 +65,7 @@ class UI:
         self.button_cancel = pygame.Rect(32, 433, 150, 50)
         self.button_decrease = pygame.Rect(216, 433, 150, 50)
         self.button_increase = pygame.Rect(416, 433, 150, 50)
+        self.button_pause = pygame.Rect(620, 433, 150, 50)
 
         # Tlačidlá v hlavnom MENU
         self.button_start_menu = pygame.Rect(300, 250, 200, 50)
@@ -91,6 +94,11 @@ class UI:
 
         # Aktuálna obrazovka (štartujeme v MENU)
         self.current_screen = Screen.MENU
+
+        # Tlačidlá pre pauzu
+        self.button_continue = pygame.Rect(self.width // 2 - 160, 200, 150, 50)
+        self.button_back_to_menu = pygame.Rect(self.width // 2 + 10, 200, 150, 50)
+
 
     def load_biomes(self):
         return [
@@ -264,6 +272,21 @@ class UI:
         label_rect = label.get_rect(center=rect.center)
         screen.blit(label, label_rect)
 
+    def draw_pause_screen(self):
+        self.screen.fill(self.LIGHT_BLUE)
+        label = self.title_font.render("PAUZA", True, self.BLACK)
+        self.screen.blit(label, (self.width // 2 - label.get_width() // 2, 100))
+
+        pygame.draw.rect(self.screen, self.GRAY, self.button_continue)
+        self.render_button_text(self.screen, self.font, "Pokračovať", self.button_continue)
+
+        pygame.draw.rect(self.screen, self.GRAY, self.button_back_to_menu)
+        self.render_button_text(self.screen, self.font, "Späť do menu", self.button_back_to_menu)
+
+        pygame.display.flip()
+
+
+
     def draw_ui(self, horse):
         self.screen.fill(self.ORANGE)
         self.draw_text(self.screen, self.font, "Rýchlosť", self.rychlost, 20, 60)
@@ -285,6 +308,9 @@ class UI:
 
         self.draw_text(self.screen, self.font, "Rekord", self.rekord, 580, 70)
         self.draw_text(self.screen, self.font, "Preťaženie", self.pretazenie, 580, 110)
+
+        pygame.draw.rect(self.screen, self.GRAY, self.button_pause)
+        self.render_button_text(self.screen, self.font, "Pauza", self.button_pause)
 
         # Posúvajúce sa pásy (cesta)
         if self.game:
@@ -392,6 +418,14 @@ class UI:
                         self.spomal_callback()
                     elif self.button_increase.collidepoint(event.pos):
                         self.pridaj_callback()
+                    elif self.button_pause.collidepoint(event.pos):
+                        self.current_screen = Screen.PAUSE
+                elif self.current_screen == Screen.PAUSE:
+                    if self.button_continue.collidepoint(event.pos):
+                        self.current_screen = Screen.GAME
+                    elif self.button_back_to_menu.collidepoint(event.pos):
+                        self.current_screen = Screen.MENU
+
 
             # Spracovanie písania mena v MENU
             if event.type == pygame.KEYDOWN and self.current_screen == Screen.MENU and self.active_input:
@@ -463,6 +497,9 @@ class UI:
                     self.game.update(dt)
                 self.draw_ui(horse)
                 horse.update_animacia()
+            elif self.current_screen == Screen.PAUSE:
+                self.draw_pause_screen()
+
 
             # Limit FPS a dt pre update hry
             dt = clock.tick(60) / 1000
