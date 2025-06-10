@@ -51,8 +51,7 @@ class UI:
         self.neprejdenych = 0
         self.aktualna_draha = ""
         self.stopky = "0:00:00"
-        # Inicializácia rekordu (použije iba čas z tuple (čas, timestamp))
-        self.rekord = Utils.najnizsi_cas()[0] if isinstance(Utils.najnizsi_cas(), tuple) else Utils.najnizsi_cas()
+        self.osobny_rekord = "N/A"  # Initialize personal best
         self.pretazenie = 0
 
         # Premenné pre meno hráča a vstupné pole
@@ -206,8 +205,7 @@ class UI:
             map_img = pygame.transform.scale(raw_img, (half - 40, 250))
             self.screen.blit(map_img, (half + 20, 60))
         except Exception:
-            pygame.draw.rect(self.screen, self.DARKGRAY,
-                             (half + 20, 60, half - 40, 250), 2)
+            pygame.draw.rect(self.screen, self.DARKGRAY, (half + 20, 60, half - 40, 250), 2)
 
         # Tlačidlá Hrať a Späť v pravom bloku
         pygame.draw.rect(self.screen, self.GRAY, self.button_play_map)
@@ -239,8 +237,7 @@ class UI:
                 return self.biomes[i]["name"]
         return self.biomes[-1]["name"]
 
-    def draw_energy(self, screen, font, value, x, y, width=150, height=30, green=(0, 255, 0), yellow=(255, 255, 0),
-                    red=(255, 0, 0), black=(0, 0, 0)):
+    def draw_energy(self, screen, font, value, x, y, width=150, height=30, green=(0, 255, 0), yellow=(255, 255, 0), red=(255, 0, 0), black=(0, 0, 0)):
         # Funkcia na vykreslenie obdĺžnika s energiou
         value = max(0, min(100, value))
         bar_width = int((value / 100) * width)
@@ -290,8 +287,7 @@ class UI:
     def draw_ui(self, horse):
         self.screen.fill(self.ORANGE)
         self.draw_text(self.screen, self.font, "Rýchlosť", self.rychlost, 20, 60)
-        self.draw_energy(self.screen, self.font, self.energia, 91, 20, green=self.GREEN, yellow=self.YELLOW,
-                         red=self.RED, black=self.BLACK)
+        self.draw_energy(self.screen, self.font, self.energia, 91, 20, green=self.GREEN, yellow=self.YELLOW, red=self.RED, black=self.BLACK)
 
         self.metre = self.fontMetre.render(str(self.neprejdenych) + "m", True, self.BLACK)
         self.metre_rect = self.metre.get_rect(center=(self.screen.get_width() // 2, 40))
@@ -306,7 +302,7 @@ class UI:
         self.cas_rect = self.cas.get_rect(center=(700, 40))
         self.screen.blit(self.cas, self.cas_rect)
 
-        self.draw_text(self.screen, self.font, "Rekord", self.rekord, 580, 70)
+        self.draw_text(self.screen, self.font, "Rekord", self.osobny_rekord, 580, 70)  # Display personal best as "Rekord"
         self.draw_text(self.screen, self.font, "Preťaženie", self.pretazenie, 580, 110)
 
         pygame.draw.rect(self.screen, self.GRAY, self.button_pause)
@@ -375,19 +371,24 @@ class UI:
                             if response.status_code == 200:
                                 try:
                                     times = response.json().get("times", [])
-                                    # Zoradiť časy od najrýchlejšieho
-                                    sorted_times = sorted(times, key=Utils.extrahuj_cas_na_stotiny)
+                                    # Zoradiť časy od najrýchlejšieho a filtrovať na najlepší čas pre každého hráča
+                                    best_times = {}
+                                    for entry in times:
+                                        name = entry["name"] or "Anonymný hráč"
+                                        time_stotiny = Utils.extrahuj_cas_na_stotiny(entry)
+                                        if name not in best_times or time_stotiny < Utils.extrahuj_cas_na_stotiny({"time": best_times[name]["time"]}):
+                                            best_times[name] = entry
+                                    sorted_times = sorted(best_times.values(), key=Utils.extrahuj_cas_na_stotiny)
                                     # Vytvoriť zoznam tupľov (poradie, meno, čas)
                                     self.scores = [(i + 1, entry["name"] or "Anonymný hráč", entry["time"]) for i, entry in enumerate(sorted_times)]
                                     # Nájdenie hráčovho skóre (ak existuje)
-                                    player_scores = [s for s in self.scores if s[1].strip().lower() == self.meno_hraca.strip().lower()]
+                                    player_scores = [s for s in sorted_times if s["name"].strip().lower() == self.meno_hraca.strip().lower()]
                                     self.my_score = player_scores[0] if player_scores else None
+                                    self.osobny_rekord = player_scores[0]["time"] if player_scores else "N/A"  # Set personal best
                                 except (ValueError, KeyError):
                                     self.scores = []
                                     self.my_score = None
-                            else:
-                                self.scores = []
-                                self.my_score = None
+                                    self.osobny_rekord = "N/A"
                             # Kontrola stavu servera
                             try:
                                 server_response = requests.get(self.server_url, timeout=2)
@@ -397,6 +398,7 @@ class UI:
                         except requests.RequestException:
                             self.scores = []
                             self.my_score = None
+                            self.osobny_rekord = "N/A"
                             self.server_online = False
                         self.current_screen = Screen.MAP_VIEW
                     elif self.button_exit_menu.collidepoint(event.pos):
@@ -439,19 +441,24 @@ class UI:
                         if response.status_code == 200:
                             try:
                                 times = response.json().get("times", [])
-                                # Zoradiť časy od najrýchlejšieho
-                                sorted_times = sorted(times, key=Utils.extrahuj_cas_na_stotiny)
+                                # Zoradiť časy od najrýchlejšieho a filtrovať na najlepší čas pre každého hráča
+                                best_times = {}
+                                for entry in times:
+                                    name = entry["name"] or "Anonymný hráč"
+                                    time_stotiny = Utils.extrahuj_cas_na_stotiny(entry)
+                                    if name not in best_times or time_stotiny < Utils.extrahuj_cas_na_stotiny({"time": best_times[name]["time"]}):
+                                        best_times[name] = entry
+                                sorted_times = sorted(best_times.values(), key=Utils.extrahuj_cas_na_stotiny)
                                 # Vytvoriť zoznam tupľov (poradie, meno, čas)
                                 self.scores = [(i + 1, entry["name"] or "Anonymný hráč", entry["time"]) for i, entry in enumerate(sorted_times)]
                                 # Nájdenie hráčovho skóre (ak existuje)
-                                player_scores = [s for s in self.scores if s[1].strip().lower() == self.meno_hraca.strip().lower()]
+                                player_scores = [s for s in sorted_times if s["name"].strip().lower() == self.meno_hraca.strip().lower()]
                                 self.my_score = player_scores[0] if player_scores else None
+                                self.osobny_rekord = player_scores[0]["time"] if player_scores else "N/A"  # Set personal best
                             except (ValueError, KeyError):
                                 self.scores = []
                                 self.my_score = None
-                        else:
-                            self.scores = []
-                            self.my_score = None
+                                self.osobny_rekord = "N/A"
                         # Kontrola stavu servera
                         try:
                             server_response = requests.get(self.server_url, timeout=2)
@@ -461,6 +468,7 @@ class UI:
                     except requests.RequestException:
                         self.scores = []
                         self.my_score = None
+                        self.osobny_rekord = "N/A"
                         self.server_online = False
                     self.current_screen = Screen.MAP_VIEW
                 elif event.key == pygame.K_BACKSPACE:
@@ -475,8 +483,12 @@ class UI:
         self.game = game
 
     def update_record(self, cas, timestamp):
-        # Aktualizuje rekord (použije iba čas, ignoruje timestamp)
-        self.rekord = cas
+        # Aktualizuje osobný rekord ak je nový čas lepší
+        if self.meno_hraca:
+            current_stotiny = Utils.cas_na_stotiny(cas)
+            best_stotiny = Utils.cas_na_stotiny(self.osobny_rekord) if self.osobny_rekord != "N/A" else float('inf')
+            if current_stotiny < best_stotiny:
+                self.osobny_rekord = cas
 
     def run(self, horse):
         # Hlavná slučka aplikácie
