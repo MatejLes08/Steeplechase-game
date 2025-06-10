@@ -4,7 +4,7 @@ import webbrowser
 from enum import Enum
 from Utils import Utils
 from Horse import Horse
-
+from audio_manager import AudioManager  # Import AudioManager
 
 # Enum pre jednotlivé obrazovky (MENU, výber mapy, samotná hra)
 class Screen(Enum):
@@ -99,6 +99,8 @@ class UI:
         self.button_continue = pygame.Rect(self.width // 2 - 160, 200, 150, 50)
         self.button_back_to_menu = pygame.Rect(self.width // 2 + 10, 200, 150, 50)
 
+        # Inicializácia AudioManager
+        self.audio_manager = AudioManager()
 
     def load_biomes(self):
         return [
@@ -409,6 +411,7 @@ class UI:
                     if self.button_play_map.collidepoint(event.pos):
                         # Prepne len obrazovku, hra sa spustí v draw_ui/Game logike
                         self.current_screen = Screen.GAME
+                        self.audio_manager.start_music()  # Spusti hudbu pri prechode do hry
                     elif self.button_back_map.collidepoint(event.pos):
                         self.current_screen = Screen.MENU
                     elif self.button_server.collidepoint(event.pos) and self.server_online:
@@ -416,6 +419,7 @@ class UI:
                 # GAME obrazovka: pôvodné tlačidlá v hre
                 elif self.current_screen == Screen.GAME:
                     if self.button_cancel.collidepoint(event.pos):
+                        self.audio_manager.stop_music()
                         return False
                     elif self.button_decrease.collidepoint(event.pos):
                         self.spomal_callback()
@@ -423,12 +427,15 @@ class UI:
                         self.pridaj_callback()
                     elif self.button_pause.collidepoint(event.pos):
                         self.current_screen = Screen.PAUSE
+                        self.audio_manager.pause_music()
                 elif self.current_screen == Screen.PAUSE:
                     if self.button_continue.collidepoint(event.pos):
                         self.current_screen = Screen.GAME
+                        self.audio_manager.unpause_music()
                     elif self.button_back_to_menu.collidepoint(event.pos):
                         if self.restart_callback:
                             self.restart_callback()
+                        self.audio_manager.stop_music()
                         self.current_screen = Screen.MENU
                         
                         
@@ -542,4 +549,6 @@ class UI:
             # Limit FPS a dt pre update hry
             dt = clock.tick(60) / 1000
 
+        # Uvoľnenie zdrojov pri ukončení
+        self.audio_manager.cleanup()
         pygame.quit()
