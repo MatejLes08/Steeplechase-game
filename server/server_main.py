@@ -30,7 +30,15 @@ def load_times():
     if os.path.exists(RECORD_FILE):
         with open(RECORD_FILE, "r") as file:
             try:
-                return json.load(file)
+                all_times = json.load(file)
+                # Filtrovať na najlepší čas pre každého hráča
+                best_times = {}
+                for entry in all_times:
+                    name = entry["name"] if entry["name"] else "Anonymný hráč"
+                    time_stotiny = parse_time_to_seconds(entry["time"])
+                    if name not in best_times or time_stotiny < parse_time_to_seconds(best_times[name]["time"]):
+                        best_times[name] = entry
+                return list(best_times.values())
             except (json.JSONDecodeError, ValueError):
                 return []
     return []

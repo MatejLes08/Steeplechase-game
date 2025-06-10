@@ -4,7 +4,6 @@ import terrain
 from Horse import Horse
 from Utils import Utils
 
-
 class Game:
     def __init__(self, update_ui_callback, update_record_callback, horse, meno_hraca=""):
         self.DRAHA = 2000
@@ -19,12 +18,18 @@ class Game:
         self.horse = horse
         self.meno_hraca = meno_hraca  # Nový atribút pre meno hráča
 
-        self.terrain = terrain.Terrain()
+        self.terrain = terrain.Terrain()  # Inicializácia s predvolenou mapou
 
         self.posun_cesty = -160  # pixely posunu celej cesty
         self.sirka_useku = 66  # šírka jedného úseku v px
         self.running_game = False
         self.last_time = time.time()
+        self.aktualny_teren = ""
+
+    def set_map(self, map_json):
+        # Nastaví mapu podľa zadaného JSON súboru
+        self.terrain = terrain.Terrain(mapa_path=map_json)
+        self.posun_cesty = 0  # Reset posunu cesty pre novú mapu
         self.aktualny_teren = ""
 
     def start_race(self):

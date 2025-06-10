@@ -4,7 +4,7 @@ import webbrowser
 from enum import Enum
 from Utils import Utils
 from Horse import Horse
-
+from audio_manager import AudioManager  # Import AudioManager
 
 # Enum pre jednotlivé obrazovky (MENU, výber mapy, samotná hra)
 class Screen(Enum):
@@ -13,13 +13,12 @@ class Screen(Enum):
     GAME = 3
     PAUSE = 4
 
-
-
 class UI:
-    def __init__(self, pridaj_callback, spomal_callback, koniec_callback, gamec):
+    def __init__(self, pridaj_callback, spomal_callback, koniec_callback, gamec, horse):
         # Inicializácia Pygame a uloženie referencie na hru (gamec)
         pygame.init()
         self.game = gamec
+        self.horse = horse
         # Rozmer okna hry
         self.width = 820
         self.height = 500
@@ -51,8 +50,7 @@ class UI:
         self.neprejdenych = 0
         self.aktualna_draha = ""
         self.stopky = "0:00:00"
-        # Inicializácia rekordu (použije iba čas z tuple (čas, timestamp))
-        self.rekord = Utils.najnizsi_cas()[0] if isinstance(Utils.najnizsi_cas(), tuple) else Utils.najnizsi_cas()
+        self.osobny_rekord = "N/A"  # Initialize personal best
         self.pretazenie = 0
 
         # Premenné pre meno hráča a vstupné pole
@@ -77,6 +75,10 @@ class UI:
         self.button_back_map = pygame.Rect(mid_x + 220, 380, 120, 40)
         # Nové tlačidlo pre server
         self.button_server = pygame.Rect(20, self.height - 70, 40, 40)
+        # Tlačidlá pre prepínanie máp
+        self.button_prev_map = pygame.Rect(mid_x + 140, 337, 60, 40)
+        self.button_next_map = pygame.Rect(mid_x + 210, 337, 60, 40)
+        self.selected_map_index = 0  # Index aktuálne vybranej mapy
 
         # Callback funkcie pre volanie od Game logiky
         self.pridaj_callback = pridaj_callback
@@ -196,24 +198,29 @@ class UI:
             self.screen.blit(offline_text, (self.button_server.right + 10, self.height - 60))
 
         # --- pravá strana: podrobnosti mapy ---
-        # Získanie názvu mapy cez volanie metódy (fallback na "MAPA")
-        map_name = getattr(self.game, 'get_map_name', lambda: "MAPA")()
+        # Získanie názvu mapy (vždy "Mapy")
+        map_name = "Mapy"
         lbl_map = self.font.render(map_name, True, self.BLACK)
         mx = half + (half - lbl_map.get_width()) // 2
         self.screen.blit(lbl_map, (mx, 20))
 
         # Obrázok mapy (pokúsim sa načítať, inak rámček)
         try:
-            raw_img = pygame.image.load(self.draha).convert()
+            raw_img = pygame.image.load(self.biomes[self.selected_map_index]["map_image"]).convert()
             map_img = pygame.transform.scale(raw_img, (half - 40, 250))
-            self.screen.blit(map_img, (half + 20, 60))
-        except Exception:
-            pygame.draw.rect(self.screen, self.DARKGRAY,
-                             (half + 20, 60, half - 40, 250), 2)
+            img_x = half + (half - map_img.get_width()) // 2
+            self.screen.blit(map_img, (img_x, 60))
+        except Exception as e:
+            print(f"Error loading map image: {e}")
+            pygame.draw.rect(self.screen, self.DARKGRAY, (half + 20, 60, half - 40, 250), 2)
+            error_text = self.font.render("Obrázok mapy nenájdený", True, self.BLACK)
+            self.screen.blit(error_text, (half + 30, 150))
 
-        # Tlačidlá Hrať a Späť v pravom bloku
+        # Tlačidlá Hrať, Späť a prepínanie máp v pravom bloku
         pygame.draw.rect(self.screen, self.GRAY, self.button_play_map)
         pygame.draw.rect(self.screen, self.GRAY, self.button_back_map)
+        pygame.draw.rect(self.screen, self.GRAY, self.button_prev_map)
+        pygame.draw.rect(self.screen, self.GRAY, self.button_next_map)
 
         def btn_text(text, rect):
             lbl = self.font.render(text, True, self.BLACK)
@@ -222,10 +229,25 @@ class UI:
 
         btn_text("Hrať", self.button_play_map)
         btn_text("Späť", self.button_back_map)
+        btn_text("<", self.button_prev_map)
+        btn_text(">", self.button_next_map)
 
         pygame.display.flip()
 
-    
+    def set_selected_map(self):
+        # Nastaví vybranú mapu v Game objekte
+        selected_biome = self.biomes[self.selected_map_index]
+        self.game.set_map(selected_biome["map_json"])
+
+    def get_biome_images(self, world_x):
+        for i in range(len(self.biomes) - 1):
+            b1 = self.biomes[i]
+            b2 = self.biomes[i + 1]
+            if b1["x_start"] <= world_x < b2["x_start"]:
+                t = (world_x - b1["x_start"]) / (b2["x_start"] - b1["x_start"])
+                return b1["image"], b2["image"], b1["decoration"], b2["decoration"], t
+        b = self.biomes[-1]
+        return b["image"], b["image"], b["decoration"], b["decoration"], 0.0
 
     def get_current_biome_name(self, world_x):
         for i in range(len(self.biomes) - 1):
@@ -233,8 +255,7 @@ class UI:
                 return self.biomes[i]["name"]
         return self.biomes[-1]["name"]
 
-    def draw_energy(self, screen, font, value, x, y, width=150, height=30, green=(0, 255, 0), yellow=(255, 255, 0),
-                    red=(255, 0, 0), black=(0, 0, 0)):
+    def draw_energy(self, screen, font, value, x, y, width=150, height=30, green=(0, 255, 0), yellow=(255, 255, 0), red=(255, 0, 0), black=(0, 0, 0)):
         # Funkcia na vykreslenie obdĺžnika s energiou
         value = max(0, min(100, value))
         bar_width = int((value / 100) * width)
@@ -279,9 +300,7 @@ class UI:
 
         pygame.display.flip()
 
-
-
-    def draw_ui(self, horse):
+    def draw_ui(self):
         self.screen.fill(self.ORANGE)
         self.draw_text(self.screen, self.font, "Rýchlosť", self.rychlost, 20, 60)
         self.draw_energy(self.screen, self.font, self.energia, 91, 20,
@@ -299,7 +318,7 @@ class UI:
         self.cas_rect = self.cas.get_rect(center=(700, 40))
         self.screen.blit(self.cas, self.cas_rect)
 
-        self.draw_text(self.screen, self.font, "Rekord", self.rekord, 580, 70)
+        self.draw_text(self.screen, self.font, "Rekord", self.osobny_rekord, 580, 70)  # Display personal best as "Rekord"
         self.draw_text(self.screen, self.font, "Preťaženie", self.pretazenie, 580, 110)
 
         pygame.draw.rect(self.screen, self.GRAY, self.button_pause)
@@ -330,15 +349,28 @@ class UI:
         self.render_button_text(self.screen, self.font, "Zrušiť", self.button_cancel, color=self.BLACK)
         self.render_button_text(self.screen, self.font, "Spomaľ", self.button_decrease, color=self.BLACK)
         self.render_button_text(self.screen, self.font, "Pridaj", self.button_increase, color=self.BLACK)
-
-        # Hráč
-        self.screen.blit(horse.current_image, (horse.position_x, horse.position_y))
+        # vykreslenie obrazku hráča
+        self.screen.blit(self.horse.current_image, (self.horse.position_x, self.horse.position_y))
         pygame.display.flip()
 
 
     def handle_events(self):
         # Spracovanie udalostí (klávesy, myš)
         for event in pygame.event.get():
+            if event.type == pygame.VIDEORESIZE:
+                self.width, self.height = event.w, event.h
+                self.screen = pygame.display.set_mode((self.width, self.height), pygame.RESIZABLE)
+                self.input_rect = pygame.Rect(self.width // 2 - 150, 180, 300, 40)
+                self.button_start_menu = pygame.Rect(self.width // 2 - 100, 250, 200, 50)
+                self.button_exit_menu = pygame.Rect(self.width // 2 - 100, 350, 200, 50)
+                mid_x = self.width // 2
+                self.button_play_map = pygame.Rect(mid_x + 70, 380, 120, 40)
+                self.button_back_map = pygame.Rect(mid_x + 220, 380, 120, 40)
+                self.button_prev_map = pygame.Rect(mid_x + 140, 337, 60, 40)
+                self.button_next_map = pygame.Rect(mid_x + 210, 337, 60, 40)
+                self.button_server = pygame.Rect(20, self.height - 70, 40, 40)
+                self.button_continue = pygame.Rect(self.width // 2 - 160, 200, 150, 50)
+                self.button_back_to_menu = pygame.Rect(self.width // 2 + 10, 200, 150, 50)
             if event.type == pygame.QUIT:
                 return False
 
@@ -356,19 +388,24 @@ class UI:
                             if response.status_code == 200:
                                 try:
                                     times = response.json().get("times", [])
-                                    # Zoradiť časy od najrýchlejšieho
-                                    sorted_times = sorted(times, key=Utils.extrahuj_cas_na_stotiny)
+                                    # Zoradiť časy od najrýchlejšieho a filtrovať na najlepší čas pre každého hráča
+                                    best_times = {}
+                                    for entry in times:
+                                        name = entry["name"] or "Anonymný hráč"
+                                        time_stotiny = Utils.extrahuj_cas_na_stotiny(entry)
+                                        if name not in best_times or time_stotiny < Utils.extrahuj_cas_na_stotiny({"time": best_times[name]["time"]}):
+                                            best_times[name] = entry
+                                    sorted_times = sorted(best_times.values(), key=Utils.extrahuj_cas_na_stotiny)
                                     # Vytvoriť zoznam tupľov (poradie, meno, čas)
                                     self.scores = [(i + 1, entry["name"] or "Anonymný hráč", entry["time"]) for i, entry in enumerate(sorted_times)]
                                     # Nájdenie hráčovho skóre (ak existuje)
-                                    player_scores = [s for s in self.scores if s[1].strip().lower() == self.meno_hraca.strip().lower()]
+                                    player_scores = [s for s in sorted_times if s["name"].strip().lower() == self.meno_hraca.strip().lower()]
                                     self.my_score = player_scores[0] if player_scores else None
+                                    self.osobny_rekord = player_scores[0]["time"] if player_scores else "N/A"  # Set personal best
                                 except (ValueError, KeyError):
                                     self.scores = []
                                     self.my_score = None
-                            else:
-                                self.scores = []
-                                self.my_score = None
+                                    self.osobny_rekord = "N/A"
                             # Kontrola stavu servera
                             try:
                                 server_response = requests.get(self.server_url, timeout=2)
@@ -378,6 +415,7 @@ class UI:
                         except requests.RequestException:
                             self.scores = []
                             self.my_score = None
+                            self.osobny_rekord = "N/A"
                             self.server_online = False
                         self.current_screen = Screen.MAP_VIEW
                     elif self.button_exit_menu.collidepoint(event.pos):
@@ -385,15 +423,22 @@ class UI:
                 # MAP_VIEW obrazovka: prehľad mapy a tlačidlo servera
                 elif self.current_screen == Screen.MAP_VIEW:
                     if self.button_play_map.collidepoint(event.pos):
-                        # Prepne len obrazovku, hra sa spustí v draw_ui/Game logike
+                        # Nastaví vybranú mapu a prepne na hernú obrazovku
+                        self.set_selected_map()
                         self.current_screen = Screen.GAME
+                        self.audio_manager.start_music()  # Spusti hudbu pri prechode do hry
                     elif self.button_back_map.collidepoint(event.pos):
                         self.current_screen = Screen.MENU
                     elif self.button_server.collidepoint(event.pos) and self.server_online:
                         webbrowser.open(self.server_url)
+                    elif self.button_prev_map.collidepoint(event.pos):
+                        self.selected_map_index = (self.selected_map_index - 1) % len(self.biomes)
+                    elif self.button_next_map.collidepoint(event.pos):
+                        self.selected_map_index = (self.selected_map_index + 1) % len(self.biomes)
                 # GAME obrazovka: pôvodné tlačidlá v hre
                 elif self.current_screen == Screen.GAME:
                     if self.button_cancel.collidepoint(event.pos):
+                        self.audio_manager.stop_music()
                         return False
                     elif self.button_decrease.collidepoint(event.pos):
                         self.spomal_callback()
@@ -401,16 +446,20 @@ class UI:
                         self.pridaj_callback()
                     elif self.button_pause.collidepoint(event.pos):
                         self.current_screen = Screen.PAUSE
+                        self.audio_manager.pause_music()
                 elif self.current_screen == Screen.PAUSE:
                     if self.button_continue.collidepoint(event.pos):
                         self.current_screen = Screen.GAME
+                        self.audio_manager.unpause_music()
                     elif self.button_back_to_menu.collidepoint(event.pos):
+                        if self.restart_callback:
+                            self.restart_callback()
+                        self.audio_manager.stop_music()
                         self.current_screen = Screen.MENU
-
 
             # Spracovanie písania mena v MENU
             if event.type == pygame.KEYDOWN and self.current_screen == Screen.MENU and self.active_input:
-                if event.key == pygame.K_RETURN and self.meno_input.strip():
+                if event.key == pygame.K_RETURN and self.meno_plan.strip():
                     self.meno_hraca = self.meno_input.strip()
                     # Zachované pre odosielanie mena
                     self.game.set_meno_hraca(self.meno_hraca)
@@ -420,28 +469,34 @@ class UI:
                         if response.status_code == 200:
                             try:
                                 times = response.json().get("times", [])
-                                # Zoradiť časy od najrýchlejšieho
-                                sorted_times = sorted(times, key=Utils.extrahuj_cas_na_stotiny)
+                                # Zoradiť časy od najrýchlejšieho a filtrovať na najlepší čas pre každého hráča
+                                best_times = {}
+                                for entry in times:
+                                    name = entry.get("name") or "Anonymný hráč"
+                                    time_stotiny = Utils.extrahuj_cas_na_stotiny(entry)
+                                    if name not in times or time_stotiny < Utils.extrahuj_cas_na_stotiny({"time": best_times[name]["time"]}):
+                                        best_times[name] = entry
+                                sorted_times = sorted(best_times.values(), key=Utils.extrahuj_cas_na_stotiny)
                                 # Vytvoriť zoznam tupľov (poradie, meno, čas)
-                                self.scores = [(i + 1, entry["name"] or "Anonymný hráč", entry["time"]) for i, entry in enumerate(sorted_times)]
+                                self.scores = [(i + 1, entry.get("name") or "Anonymný hráč", entry["time"]) for i, entry in enumerate(sorted_times)]
                                 # Nájdenie hráčovho skóre (ak existuje)
-                                player_scores = [s for s in self.scores if s[1].strip().lower() == self.meno_hraca.strip().lower()]
+                                player_scores = [s for s in sorted_times if s["name"].strip().lower() == self.meno_hraca.strip().lower()]
                                 self.my_score = player_scores[0] if player_scores else None
+                                self.osobny_rekord = player_scores[0]["time"] if player_scores else "N/A"  # Set personal best
                             except (ValueError, KeyError):
                                 self.scores = []
                                 self.my_score = None
-                        else:
-                            self.scores = []
-                            self.my_score = None
+                                self.osobny_rekord = "N/A"
                         # Kontrola stavu servera
                         try:
                             server_response = requests.get(self.server_url, timeout=2)
                             self.server_online = server_response.status_code == 200
                         except requests.RequestException:
                             self.server_online = False
-                    except requests.RequestException:
+                    except Exception:
                         self.scores = []
                         self.my_score = None
+                        self.osobny_rekord = "N/A"
                         self.server_online = False
                     self.current_screen = Screen.MAP_VIEW
                 elif event.key == pygame.K_BACKSPACE:
@@ -456,10 +511,32 @@ class UI:
         self.game = game
 
     def update_record(self, cas, timestamp):
-        # Aktualizuje rekord (použije iba čas, ignoruje timestamp)
-        self.rekord = cas
+        # Aktualizuje osobný rekord ak je nový čas lepší
+        if self.meno_hraca:
+            current_stotiny = Utils.cas_na_stotiny(cas)
+            best_stotiny = Utils.cas_na_stotiny(self.osobny_rekord) if self.osobny_rekord != "N/A" else float('inf')
+            if current_stotiny < best_stotiny:
+                self.osobny_rekord = cas
 
-    def run(self, horse):
+    def set_restart_callback(self, callback):
+        self.restart_callback = callback
+
+    def reset(self, horse, game, pridaj, spomal, koniec, update_ui, update_record):
+        self.horse = horse
+        self.game = game
+        self.pridaj_callback = pridaj
+        self.spomal_callback = spomal
+        self.koniec_callback = koniec
+        self.rekord = Utils.najnizsi_cas()[0] if isinstance(Utils.najnizsi_cas(), tuple) else Utils.najnizsi_cas()
+        self.stopky = "0:00.000"
+        self.energia = 100
+        self.rychlost = 0
+        self.neprejdenych = 0
+        self.pretaz = 0
+        self.game.update_ui = update_ui
+        self.game.update_record = update_record
+
+    def run(self):
         # Hlavná slučka aplikácie
         clock = pygame.time.Clock()
         dt = 0.0
@@ -476,13 +553,14 @@ class UI:
                 # Tu sa vykreslí samotná hra pomocou draw_ui (a horse animácie)
                 if self.game:
                     self.game.update(dt)
-                self.draw_ui(horse)
-                horse.update_animacia()
+                self.draw_ui()
+                self.horse.update_animacia()
             elif self.current_screen == Screen.PAUSE:
                 self.draw_pause_screen()
-
 
             # Limit FPS a dt pre update hry
             dt = clock.tick(60) / 1000
 
+        # Uvoľnenie zdrojov pri ukončení
+        self.audio_manager.cleanup()
         pygame.quit()
