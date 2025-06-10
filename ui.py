@@ -14,6 +14,8 @@ class Screen(Enum):
     PAUSE = 4
     END_GAME = 5
 
+
+
 class UI:
     def __init__(self, pridaj_callback=None, spomal_callback=None, koniec_callback=None, gamec=None, horse=None):
         # Inicializácia Pygame a uloženie referencie na hru (gamec)
@@ -99,7 +101,7 @@ class UI:
         self.server_online = False
         self.server_url = "https://9cf54da1-84f4-45d0-b6fd-0817a0a4a654-00-2s3626w9v692a.janeway.replit.dev/"
 
-        # Aktuálna obrazovka: štartujeme v MENU
+        # Aktuálna obrazovka (štartujeme v MENU)
         self.current_screen = Screen.MENU
 
         # Tlačidlá pre vyskakovacie okná (relatívne k oknu 500x400)
@@ -240,15 +242,11 @@ class UI:
 
         # Obrázok mapy (pokúsim sa načítať, inak rámček)
         try:
-            raw_img = pygame.image.load(self.biomes[self.selected_map_index]["map_image"]).convert()
+            raw_img = pygame.image.load(self.draha).convert()
             map_img = pygame.transform.scale(raw_img, (half - 40, 250))
-            img_x = half + (half - map_img.get_width()) // 2
-            self.screen.blit(map_img, (img_x, 60))
-        except Exception as e:
-            print(f"Error loading map image: {e}")
+            self.screen.blit(map_img, (half + 20, 60))
+        except Exception:
             pygame.draw.rect(self.screen, self.DARKGRAY, (half + 20, 60, half - 40, 250), 2)
-            error_text = self.font.render("Obrázok mapy nenájdený", True, self.BLACK)
-            self.screen.blit(error_text, (half + 30, 150))
 
         # Tlačidlá Hrať a Späť v pravom bloku, tlačidlá < a >
         pygame.draw.rect(self.screen, self.GRAY, self.button_prev_map)
@@ -441,11 +439,8 @@ class UI:
         self.cas_rect = self.cas.get_rect(topright=(x_right, y_top - 30))
         self.screen.blit(self.cas, self.cas_rect)
 
-        # Rekord
-        rekord_text = f"Rekord: {self.osobny_rekord}"
-        rekord_surf = self.font.render(rekord_text, True, self.BLACK)
-        rekord_rect = rekord_surf.get_rect(topright=(x_right, y_top + 60))
-        self.screen.blit(rekord_surf, rekord_rect)
+        self.draw_text(self.screen, self.font, "Rekord", self.osobny_rekord, 580, 70)  # Display personal best as "Rekord"
+        self.draw_text(self.screen, self.font, "Preťaženie", self.pretazenie, 580, 110)
 
         # === TLAČIDLO PAUZA (hore vľavo) ===
         pygame.draw.rect(self.screen, self.GRAY, self.button_pause)
@@ -485,6 +480,7 @@ class UI:
             self.horse.update_animacia()
 
         pygame.display.flip()
+
 
     def handle_events(self):
         # Spracovanie udalostí (klávesy, myš)
@@ -709,6 +705,8 @@ class UI:
         self.audio_manager.cleanup()
         pygame.quit()
 
+
+
     def run(self):
         # Hlavná slučka aplikácie
         clock = pygame.time.Clock()
@@ -732,6 +730,7 @@ class UI:
                 self.draw_pause_screen()
             elif self.current_screen == Screen.END_GAME:
                 self.draw_end_game_screen()
+
 
             # Limit FPS a dt pre update hry
             dt = clock.tick(60) / 1000
