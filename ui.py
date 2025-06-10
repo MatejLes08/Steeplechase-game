@@ -75,7 +75,7 @@ class UI:
         self.button_back_map = pygame.Rect(mid_x + 220, 380, 120, 40)
         # Nové tlačidlo pre server
         self.button_server = pygame.Rect(20, self.height - 70, 40, 40)
-        # Tlačidlá pre prepínanie máp (posunuté doprava a o 3 pixely vyššie)
+        # Tlačidlá pre prepínanie máp
         self.button_prev_map = pygame.Rect(mid_x + 140, 337, 60, 40)
         self.button_next_map = pygame.Rect(mid_x + 210, 337, 60, 40)
         self.selected_map_index = 0  # Index aktuálne vybranej mapy
@@ -92,41 +92,44 @@ class UI:
         self.my_score = None
         # Stav servera
         self.server_online = False
-        self.server_url = "https://9cf54da1-84f4-45d0-b6fd-0a1-b6c2a7d8e9f0.j"
+        self.server_url = "https://9cf54da1-84f4-45d0-b6fd-0817a0a4a654-00-2s3626w9v692a.janeway.replit.dev/"
 
-        # Aktuálna obrazovka: štartujeme v MENU
+        # Aktuálna obrazovka (štartujeme v MENU)
         self.current_screen = Screen.MENU
 
         # Tlačidlá pre pauzu
         self.button_continue = pygame.Rect(self.width // 2 - 160, 200, 150, 50)
-        self.button_back_to_menu = pygame.Rect(self.width // 2 + 10, 200, 200, 50)
+        self.button_back_to_menu = pygame.Rect(self.width // 2 + 10, 200, 150, 50)
 
         # Inicializácia AudioManager
         self.audio_manager = AudioManager()
 
     def load_biomes(self):
-        # Načítanie biomov s unikátnymi mapovými obrázkami
+        # Načítanie biomov s unikátnymi mapovými obrázkami a JSON súbormi
         return [
             {
                 "name": "Les",
                 "x_start": 0,
                 "image": pygame.image.load("assets/cesta4_sideways.png").convert(),
                 "decoration": pygame.image.load("assets/cesta4_sideways.png").convert_alpha(),
-                "map_image": "assets/mapa1.png"
+                "map_image": "assets/mapa1.png",
+                "map_json": "mapa1.json"
             },
             {
                 "name": "Púšť",
                 "x_start": 1000,
                 "image": pygame.image.load("assets/cesta4_sideways.png").convert(),
                 "decoration": pygame.image.load("assets/cesta4_sideways.png").convert_alpha(),
-                "map_image": "assets/mapa2.png"
+                "map_image": "assets/mapa2.png",
+                "map_json": "mapa2.json"
             },
             {
                 "name": "Sneh",
                 "x_start": 2000,
                 "image": pygame.image.load("assets/cesta4_sideways.png").convert(),
                 "decoration": pygame.image.load("assets/cesta4_sideways.png").convert_alpha(),
-                "map_image": "assets/mapa3.png"
+                "map_image": "assets/mapa3.jpg",
+                "map_json": "mapa3.json"
             }
         ]
 
@@ -237,6 +240,11 @@ class UI:
         btn_text(">", self.button_next_map)
 
         pygame.display.flip()
+
+    def set_selected_map(self):
+        # Nastaví vybranú mapu v Game objekte
+        selected_biome = self.biomes[self.selected_map_index]
+        self.game.set_map(selected_biome["map_json"])
 
     def get_biome_images(self, world_x):
         for i in range(len(self.biomes) - 1):
@@ -382,7 +390,7 @@ class UI:
                 self.button_next_map = pygame.Rect(mid_x + 210, 337, 60, 40)
                 self.button_server = pygame.Rect(20, self.height - 70, 40, 40)
                 self.button_continue = pygame.Rect(self.width // 2 - 160, 200, 150, 50)
-                self.button_back_to_menu = pygame.Rect(self.width // 2 + 10, 200, 200, 50)
+                self.button_back_to_menu = pygame.Rect(self.width // 2 + 10, 200, 150, 50)
             if event.type == pygame.QUIT:
                 return False
 
@@ -435,7 +443,8 @@ class UI:
                 # MAP_VIEW obrazovka: prehľad mapy a tlačidlo servera
                 elif self.current_screen == Screen.MAP_VIEW:
                     if self.button_play_map.collidepoint(event.pos):
-                        # Prepne len obrazovku, hra sa spustí v draw_ui/Game logike
+                        # Nastaví vybranú mapu a prepne na hernú obrazovku
+                        self.set_selected_map()
                         self.current_screen = Screen.GAME
                         self.audio_manager.start_music()  # Spusti hudbu pri prechode do hry
                     elif self.button_back_map.collidepoint(event.pos):
@@ -470,7 +479,7 @@ class UI:
 
             # Spracovanie písania mena v MENU
             if event.type == pygame.KEYDOWN and self.current_screen == Screen.MENU and self.active_input:
-                if event.key == pygame.K_RETURN and self.meno_input.strip():
+                if event.key == pygame.K_RETURN and self.meno_plan.strip():
                     self.meno_hraca = self.meno_input.strip()
                     # Zachované pre odosielanie mena
                     self.game.set_meno_hraca(self.meno_hraca)
@@ -483,13 +492,13 @@ class UI:
                                 # Zoradiť časy od najrýchlejšieho a filtrovať na najlepší čas pre každého hráča
                                 best_times = {}
                                 for entry in times:
-                                    name = entry["name"] or "Anonymný hráč"
+                                    name = entry.get("name") or "Anonymný hráč"
                                     time_stotiny = Utils.extrahuj_cas_na_stotiny(entry)
-                                    if name not in best_times or time_stotiny < Utils.extrahuj_cas_na_stotiny({"time": best_times[name]["time"]}):
+                                    if name not in times or time_stotiny < Utils.extrahuj_cas_na_stotiny({"time": best_times[name]["time"]}):
                                         best_times[name] = entry
                                 sorted_times = sorted(best_times.values(), key=Utils.extrahuj_cas_na_stotiny)
                                 # Vytvoriť zoznam tupľov (poradie, meno, čas)
-                                self.scores = [(i + 1, entry["name"] or "Anonymný hráč", entry["time"]) for i, entry in enumerate(sorted_times)]
+                                self.scores = [(i + 1, entry.get("name") or "Anonymný hráč", entry["time"]) for i, entry in enumerate(sorted_times)]
                                 # Nájdenie hráčovho skóre (ak existuje)
                                 player_scores = [s for s in sorted_times if s["name"].strip().lower() == self.meno_hraca.strip().lower()]
                                 self.my_score = player_scores[0] if player_scores else None
@@ -504,7 +513,7 @@ class UI:
                             self.server_online = server_response.status_code == 200
                         except requests.RequestException:
                             self.server_online = False
-                    except requests.RequestException:
+                    except Exception:
                         self.scores = []
                         self.my_score = None
                         self.osobny_rekord = "N/A"
@@ -543,7 +552,7 @@ class UI:
         self.energia = 100
         self.rychlost = 0
         self.neprejdenych = 0
-        self.pretazenie = 0
+        self.pretaz = 0
         self.game.update_ui = update_ui
         self.game.update_record = update_record
 
