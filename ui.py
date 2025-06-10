@@ -16,10 +16,11 @@ class Screen(Enum):
 
 
 class UI:
-    def __init__(self, pridaj_callback, spomal_callback, koniec_callback, gamec):
+    def __init__(self, pridaj_callback, spomal_callback, koniec_callback, gamec, horse):
         # Inicializácia Pygame a uloženie referencie na hru (gamec)
         pygame.init()
         self.game = gamec
+        self.horse = horse
         # Rozmer okna hry
         self.width = 820
         self.height = 500
@@ -287,7 +288,7 @@ class UI:
 
 
 
-    def draw_ui(self, horse):
+    def draw_ui(self):
         self.screen.fill(self.ORANGE)
         self.draw_text(self.screen, self.font, "Rýchlosť", self.rychlost, 20, 60)
         self.draw_energy(self.screen, self.font, self.energia, 91, 20, green=self.GREEN, yellow=self.YELLOW,
@@ -352,7 +353,7 @@ class UI:
         self.render_button_text(self.screen, self.font, "Spomaľ", self.button_decrease, color=self.BLACK)
         self.render_button_text(self.screen, self.font, "Pridaj", self.button_increase, color=self.BLACK)
         # vykreslenie obrazku hráča
-        self.screen.blit(horse.current_image, (horse.position_x, horse.position_y))
+        self.screen.blit(self.horse.current_image, (self.horse.position_x, self.horse.position_y))
         pygame.display.flip()
 
     def handle_events(self):
@@ -424,7 +425,11 @@ class UI:
                     if self.button_continue.collidepoint(event.pos):
                         self.current_screen = Screen.GAME
                     elif self.button_back_to_menu.collidepoint(event.pos):
+                        if self.restart_callback:
+                            self.restart_callback()
                         self.current_screen = Screen.MENU
+                        
+                        
 
 
             # Spracovanie písania mena v MENU
@@ -478,7 +483,28 @@ class UI:
         # Aktualizuje rekord (použije iba čas, ignoruje timestamp)
         self.rekord = cas
 
-    def run(self, horse):
+    def set_restart_callback(self, callback):
+        self.restart_callback = callback
+
+
+    def reset(self, horse, game, pridaj, spomal, koniec, update_ui, update_record):
+        self.horse = horse
+        self.game = game
+        self.pridaj_callback = pridaj
+        self.spomal_callback = spomal
+        self.koniec_callback = koniec
+        self.rekord = Utils.najnizsi_cas()[0] if isinstance(Utils.najnizsi_cas(), tuple) else Utils.najnizsi_cas()
+        self.stopky = "0:00.000"
+        self.energia = 100
+        self.rychlost = 0
+        self.neprejdenych = 0
+        self.pretazenie = 0
+        self.game.update_ui = update_ui
+        self.game.update_record = update_record
+
+
+
+    def run(self):
         # Hlavná slučka aplikácie
         clock = pygame.time.Clock()
         dt = 0.0
@@ -495,8 +521,8 @@ class UI:
                 # Tu sa vykreslí samotná hra pomocou draw_ui (a horse animácie)
                 if self.game:
                     self.game.update(dt)
-                self.draw_ui(horse)
-                horse.update_animacia()
+                self.draw_ui()
+                self.horse.update_animacia()
             elif self.current_screen == Screen.PAUSE:
                 self.draw_pause_screen()
 
