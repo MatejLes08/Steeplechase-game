@@ -13,8 +13,6 @@ class Screen(Enum):
     GAME = 3
     PAUSE = 4
 
-
-
 class UI:
     def __init__(self, pridaj_callback, spomal_callback, koniec_callback, gamec, horse):
         # Inicializácia Pygame a uloženie referencie na hru (gamec)
@@ -77,6 +75,10 @@ class UI:
         self.button_back_map = pygame.Rect(mid_x + 220, 380, 120, 40)
         # Nové tlačidlo pre server
         self.button_server = pygame.Rect(20, self.height - 70, 40, 40)
+        # Tlačidlá pre prepínanie máp (posunuté doprava a o 3 pixely vyššie)
+        self.button_prev_map = pygame.Rect(mid_x + 140, 337, 60, 40)
+        self.button_next_map = pygame.Rect(mid_x + 210, 337, 60, 40)
+        self.selected_map_index = 0  # Index aktuálne vybranej mapy
 
         # Callback funkcie pre volanie od Game logiky
         self.pridaj_callback = pridaj_callback
@@ -90,37 +92,41 @@ class UI:
         self.my_score = None
         # Stav servera
         self.server_online = False
-        self.server_url = "https://9cf54da1-84f4-45d0-b6fd-0817a0a4a654-00-2s3626w9v692a.janeway.replit.dev/"
+        self.server_url = "https://9cf54da1-84f4-45d0-b6fd-0a1-b6c2a7d8e9f0.j"
 
-        # Aktuálna obrazovka (štartujeme v MENU)
+        # Aktuálna obrazovka: štartujeme v MENU
         self.current_screen = Screen.MENU
 
         # Tlačidlá pre pauzu
         self.button_continue = pygame.Rect(self.width // 2 - 160, 200, 150, 50)
-        self.button_back_to_menu = pygame.Rect(self.width // 2 + 10, 200, 150, 50)
+        self.button_back_to_menu = pygame.Rect(self.width // 2 + 10, 200, 200, 50)
 
         # Inicializácia AudioManager
         self.audio_manager = AudioManager()
 
     def load_biomes(self):
+        # Načítanie biomov s unikátnymi mapovými obrázkami
         return [
             {
                 "name": "Les",
                 "x_start": 0,
                 "image": pygame.image.load("assets/cesta4_sideways.png").convert(),
-                "decoration": pygame.image.load("assets/cesta4_sideways.png").convert_alpha()
+                "decoration": pygame.image.load("assets/cesta4_sideways.png").convert_alpha(),
+                "map_image": "assets/mapa1.png"
             },
             {
                 "name": "Púšť",
                 "x_start": 1000,
                 "image": pygame.image.load("assets/cesta4_sideways.png").convert(),
-                "decoration": pygame.image.load("assets/cesta4_sideways.png").convert_alpha()
+                "decoration": pygame.image.load("assets/cesta4_sideways.png").convert_alpha(),
+                "map_image": "assets/mapa2.png"
             },
             {
                 "name": "Sneh",
                 "x_start": 2000,
                 "image": pygame.image.load("assets/cesta4_sideways.png").convert(),
-                "decoration": pygame.image.load("assets/cesta4_sideways.png").convert_alpha()
+                "decoration": pygame.image.load("assets/cesta4_sideways.png").convert_alpha(),
+                "map_image": "assets/mapa3.png"
             }
         ]
 
@@ -196,23 +202,29 @@ class UI:
             self.screen.blit(offline_text, (self.button_server.right + 10, self.height - 60))
 
         # --- pravá strana: podrobnosti mapy ---
-        # Získanie názvu mapy cez volanie metódy (fallback na "MAPA")
-        map_name = getattr(self.game, 'get_map_name', lambda: "MAPA")()
+        # Získanie názvu mapy (vždy "Mapy")
+        map_name = "Mapy"
         lbl_map = self.font.render(map_name, True, self.BLACK)
         mx = half + (half - lbl_map.get_width()) // 2
         self.screen.blit(lbl_map, (mx, 20))
 
         # Obrázok mapy (pokúsim sa načítať, inak rámček)
         try:
-            raw_img = pygame.image.load(self.draha).convert()
+            raw_img = pygame.image.load(self.biomes[self.selected_map_index]["map_image"]).convert()
             map_img = pygame.transform.scale(raw_img, (half - 40, 250))
-            self.screen.blit(map_img, (half + 20, 60))
-        except Exception:
+            img_x = half + (half - map_img.get_width()) // 2
+            self.screen.blit(map_img, (img_x, 60))
+        except Exception as e:
+            print(f"Error loading map image: {e}")
             pygame.draw.rect(self.screen, self.DARKGRAY, (half + 20, 60, half - 40, 250), 2)
+            error_text = self.font.render("Obrázok mapy nenájdený", True, self.BLACK)
+            self.screen.blit(error_text, (half + 30, 150))
 
-        # Tlačidlá Hrať a Späť v pravom bloku
+        # Tlačidlá Hrať, Späť a prepínanie máp v pravom bloku
         pygame.draw.rect(self.screen, self.GRAY, self.button_play_map)
         pygame.draw.rect(self.screen, self.GRAY, self.button_back_map)
+        pygame.draw.rect(self.screen, self.GRAY, self.button_prev_map)
+        pygame.draw.rect(self.screen, self.GRAY, self.button_next_map)
 
         def btn_text(text, rect):
             lbl = self.font.render(text, True, self.BLACK)
@@ -221,6 +233,8 @@ class UI:
 
         btn_text("Hrať", self.button_play_map)
         btn_text("Späť", self.button_back_map)
+        btn_text("<", self.button_prev_map)
+        btn_text(">", self.button_next_map)
 
         pygame.display.flip()
 
@@ -284,8 +298,6 @@ class UI:
         self.render_button_text(self.screen, self.font, "Späť do menu", self.button_back_to_menu)
 
         pygame.display.flip()
-
-
 
     def draw_ui(self):
         self.screen.fill(self.ORANGE)
@@ -357,6 +369,20 @@ class UI:
     def handle_events(self):
         # Spracovanie udalostí (klávesy, myš)
         for event in pygame.event.get():
+            if event.type == pygame.VIDEORESIZE:
+                self.width, self.height = event.w, event.h
+                self.screen = pygame.display.set_mode((self.width, self.height), pygame.RESIZABLE)
+                self.input_rect = pygame.Rect(self.width // 2 - 150, 180, 300, 40)
+                self.button_start_menu = pygame.Rect(self.width // 2 - 100, 250, 200, 50)
+                self.button_exit_menu = pygame.Rect(self.width // 2 - 100, 350, 200, 50)
+                mid_x = self.width // 2
+                self.button_play_map = pygame.Rect(mid_x + 70, 380, 120, 40)
+                self.button_back_map = pygame.Rect(mid_x + 220, 380, 120, 40)
+                self.button_prev_map = pygame.Rect(mid_x + 140, 337, 60, 40)
+                self.button_next_map = pygame.Rect(mid_x + 210, 337, 60, 40)
+                self.button_server = pygame.Rect(20, self.height - 70, 40, 40)
+                self.button_continue = pygame.Rect(self.width // 2 - 160, 200, 150, 50)
+                self.button_back_to_menu = pygame.Rect(self.width // 2 + 10, 200, 200, 50)
             if event.type == pygame.QUIT:
                 return False
 
@@ -416,6 +442,10 @@ class UI:
                         self.current_screen = Screen.MENU
                     elif self.button_server.collidepoint(event.pos) and self.server_online:
                         webbrowser.open(self.server_url)
+                    elif self.button_prev_map.collidepoint(event.pos):
+                        self.selected_map_index = (self.selected_map_index - 1) % len(self.biomes)
+                    elif self.button_next_map.collidepoint(event.pos):
+                        self.selected_map_index = (self.selected_map_index + 1) % len(self.biomes)
                 # GAME obrazovka: pôvodné tlačidlá v hre
                 elif self.current_screen == Screen.GAME:
                     if self.button_cancel.collidepoint(event.pos):
@@ -437,9 +467,6 @@ class UI:
                             self.restart_callback()
                         self.audio_manager.stop_music()
                         self.current_screen = Screen.MENU
-                        
-                        
-
 
             # Spracovanie písania mena v MENU
             if event.type == pygame.KEYDOWN and self.current_screen == Screen.MENU and self.active_input:
@@ -505,7 +532,6 @@ class UI:
     def set_restart_callback(self, callback):
         self.restart_callback = callback
 
-
     def reset(self, horse, game, pridaj, spomal, koniec, update_ui, update_record):
         self.horse = horse
         self.game = game
@@ -520,8 +546,6 @@ class UI:
         self.pretazenie = 0
         self.game.update_ui = update_ui
         self.game.update_record = update_record
-
-
 
     def run(self):
         # Hlavná slučka aplikácie
@@ -544,7 +568,6 @@ class UI:
                 self.horse.update_animacia()
             elif self.current_screen == Screen.PAUSE:
                 self.draw_pause_screen()
-
 
             # Limit FPS a dt pre update hry
             dt = clock.tick(60) / 1000
