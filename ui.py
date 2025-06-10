@@ -32,7 +32,7 @@ class UI:
         self.fontMetre = pygame.font.SysFont(None, 110)
         self.fontCas = pygame.font.SysFont("Arial", 70)
 
-        self.biomes = self.load_biomes()
+        
 
         # Definícia farieb v RGB
         self.WHITE = (255, 255, 255)
@@ -99,28 +99,30 @@ class UI:
         self.button_continue = pygame.Rect(self.width // 2 - 160, 200, 150, 50)
         self.button_back_to_menu = pygame.Rect(self.width // 2 + 10, 200, 150, 50)
 
+        # Mapovanie typu terénu na obrázok
+        self.terrain_images = [
+            pygame.image.load("assets/start.png").convert(),
+            pygame.image.load("assets/cesta0.png").convert(),
+            pygame.image.load("assets/cesta1.png").convert(),
+            pygame.image.load("assets/cesta2.png").convert(),
+            pygame.image.load("assets/narocne0.png").convert(),
+            pygame.image.load("assets/narocne1.png").convert(),
+            pygame.image.load("assets/narocne2.png").convert(),
+            pygame.image.load("assets/sprinterske0.png").convert(),
+            pygame.image.load("assets/sprinterske1.png").convert(),
+            pygame.image.load("assets/sprinterske2.png").convert(),
+            pygame.image.load("assets/napajadlo0.png").convert(),
+            pygame.image.load("assets/napajadlo1.png").convert(),
+            pygame.image.load("assets/napajadlo2.png").convert(),
+            pygame.image.load("assets/ciel.png").convert()]
+            
+        
 
-    def load_biomes(self):
-        return [
-            {
-                "name": "Les",
-                "x_start": 0,
-                "image": pygame.image.load("assets/cesta4_sideways.png").convert(),
-                "decoration": pygame.image.load("assets/cesta4_sideways.png").convert_alpha()
-            },
-            {
-                "name": "Púšť",
-                "x_start": 1000,
-                "image": pygame.image.load("assets/cesta4_sideways.png").convert(),
-                "decoration": pygame.image.load("assets/cesta4_sideways.png").convert_alpha()
-            },
-            {
-                "name": "Sneh",
-                "x_start": 2000,
-                "image": pygame.image.load("assets/cesta4_sideways.png").convert(),
-                "decoration": pygame.image.load("assets/cesta4_sideways.png").convert_alpha()
-            }
-        ]
+
+
+    
+
+    
 
     def draw_menu(self):
         """
@@ -223,15 +225,7 @@ class UI:
 
         pygame.display.flip()
 
-    def get_biome_images(self, world_x):
-        for i in range(len(self.biomes) - 1):
-            b1 = self.biomes[i]
-            b2 = self.biomes[i + 1]
-            if b1["x_start"] <= world_x < b2["x_start"]:
-                t = (world_x - b1["x_start"]) / (b2["x_start"] - b1["x_start"])
-                return b1["image"], b2["image"], b1["decoration"], b2["decoration"], t
-        b = self.biomes[-1]
-        return b["image"], b["image"], b["decoration"], b["decoration"], 0.0
+    
 
     def get_current_biome_name(self, world_x):
         for i in range(len(self.biomes) - 1):
@@ -290,14 +284,13 @@ class UI:
     def draw_ui(self, horse):
         self.screen.fill(self.ORANGE)
         self.draw_text(self.screen, self.font, "Rýchlosť", self.rychlost, 20, 60)
-        self.draw_energy(self.screen, self.font, self.energia, 91, 20, green=self.GREEN, yellow=self.YELLOW,
-                         red=self.RED, black=self.BLACK)
+        self.draw_energy(self.screen, self.font, self.energia, 91, 20,
+                        green=self.GREEN, yellow=self.YELLOW, red=self.RED, black=self.BLACK)
 
         self.metre = self.fontMetre.render(str(self.neprejdenych) + "m", True, self.BLACK)
         self.metre_rect = self.metre.get_rect(center=(self.screen.get_width() // 2, 40))
         self.screen.blit(self.metre, self.metre_rect)
 
-        self.draw_text(self.screen, self.font, "Terén", self.aktualna_draha, 20, 100)
         if self.game:
             self.aktualna_draha = self.game.get_akt_draha()
         self.draw_text(self.screen, self.font, "Terén", self.aktualna_draha, 20, 100)
@@ -312,37 +305,23 @@ class UI:
         pygame.draw.rect(self.screen, self.GRAY, self.button_pause)
         self.render_button_text(self.screen, self.font, "Pauza", self.button_pause)
 
-        # Posúvajúce sa pásy (cesta)
         if self.game:
             posun = self.game.posun_cesty
             sirka = self.game.sirka_useku
             self.offset = -int(posun % sirka)
-            start_index = int(posun // sirka) - 1
-            world_x = posun
+            start_meter = int(posun // sirka)
+            terrain_map = self.draha  # zoznam indexov obrázkov (1–13, vrátane)
 
             for i in range(15):
-                x_pozicia = i * sirka + self.offset
-                current_world_x = world_x + i * sirka
-                # Získanie obrázkov a prechodovej hodnoty
-                img1, img2, decor1, decor2, t = self.get_biome_images(current_world_x)
-                # Povrch pre blendovanie
-                blended_surface = pygame.Surface((sirka, 200), pygame.SRCALPHA)
-                img1_scaled = pygame.transform.scale(img1, (sirka, 200))
-                img2_scaled = pygame.transform.scale(img2, (sirka, 200))
-                img1_scaled.set_alpha(int(255 * (1 - t)))
-                img2_scaled.set_alpha(int(255 * t))
-                blended_surface.blit(img1_scaled, (0, 0))
-                blended_surface.blit(img2_scaled, (0, 0))
-                self.screen.blit(blended_surface, (x_pozicia, 220))
-                # Dekorácie
-                decor_blend = pygame.Surface((sirka, 200), pygame.SRCALPHA)
-                decor1_scaled = pygame.transform.scale(decor1, (sirka, 200))
-                decor2_scaled = pygame.transform.scale(decor2, (sirka, 200))
-                decor1_scaled.set_alpha(int(255 * (1 - t)))
-                decor2_scaled.set_alpha(int(255 * t))
-                decor_blend.blit(decor1_scaled, (0, 0))
-                decor_blend.blit(decor2_scaled, (0, 0))
-                self.screen.blit(decor_blend, (x_pozicia, 220))
+                meter_index = start_meter + i
+                if 0 <= meter_index < len(terrain_map):
+                    image_index = terrain_map[meter_index]
+                    if 0 <= image_index < len(self.terrain_images):
+                        image = self.terrain_images[image_index]
+                        x_pozicia = i * sirka + self.offset
+                        img_scaled = pygame.transform.scale(image, (sirka, 200))
+                        self.screen.blit(img_scaled, (x_pozicia, 220))
+
 
         # Tlačidlá
         pygame.draw.rect(self.screen, self.RED, self.button_cancel)
@@ -351,9 +330,11 @@ class UI:
         self.render_button_text(self.screen, self.font, "Zrušiť", self.button_cancel, color=self.BLACK)
         self.render_button_text(self.screen, self.font, "Spomaľ", self.button_decrease, color=self.BLACK)
         self.render_button_text(self.screen, self.font, "Pridaj", self.button_increase, color=self.BLACK)
-        # vykreslenie obrazku hráča
+
+        # Hráč
         self.screen.blit(horse.current_image, (horse.position_x, horse.position_y))
         pygame.display.flip()
+
 
     def handle_events(self):
         # Spracovanie udalostí (klávesy, myš)
