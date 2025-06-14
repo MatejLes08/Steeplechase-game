@@ -106,6 +106,25 @@ class UI:
         # Inicializácia AudioManager
         self.audio_manager = AudioManager()
 
+
+        # Mapovanie typu terénu na obrázok
+        self.terrain_images = [
+            pygame.image.load("assets/start.png").convert(),
+            pygame.image.load("assets/cesta0.png").convert(),
+            pygame.image.load("assets/cesta1.png").convert(),
+            pygame.image.load("assets/cesta2.png").convert(),
+            pygame.image.load("assets/narocne0.png").convert(),
+            pygame.image.load("assets/narocne1.png").convert(),
+            pygame.image.load("assets/narocne2.png").convert(),
+            pygame.image.load("assets/sprinterske0.png").convert(),
+            pygame.image.load("assets/sprinterske1.png").convert(),
+            pygame.image.load("assets/sprinterske2.png").convert(),
+            pygame.image.load("assets/napajadlo0.png").convert(),
+            pygame.image.load("assets/napajadlo1.png").convert(),
+            pygame.image.load("assets/napajadlo2.png").convert(),
+            pygame.image.load("assets/ciel.png").convert()]
+        
+
     def load_biomes(self):
         # Načítanie biomov s unikátnymi mapovými obrázkami a JSON súbormi
         return [
@@ -387,31 +406,18 @@ class UI:
             posun = self.game.posun_cesty
             sirka = self.game.sirka_useku
             self.offset = -int(posun % sirka)
-            start_index = int(posun // sirka) - 1
-            world_x = posun
+            start_meter = int(posun // sirka)
+            terrain_map = self.draha  # zoznam indexov obrázkov (1–13, vrátane)
 
-            for i in range(30):
-                x_pozicia = i * sirka + self.offset
-                current_world_x = world_x + i * sirka
-                img1, img2, decor1, decor2, t = self.get_biome_images(current_world_x)
-
-                blended_surface = pygame.Surface((sirka, 200), pygame.SRCALPHA)
-                img1_scaled = pygame.transform.scale(img1, (sirka, 200))
-                img2_scaled = pygame.transform.scale(img2, (sirka, 200))
-                img1_scaled.set_alpha(int(255 * (1 - t)))
-                img2_scaled.set_alpha(int(255 * t))
-                blended_surface.blit(img1_scaled, (0, 0))
-                blended_surface.blit(img2_scaled, (0, 0))
-                self.screen.blit(blended_surface, (x_pozicia, 400))
-
-                decor_blend = pygame.Surface((sirka, 200), pygame.SRCALPHA)
-                decor1_scaled = pygame.transform.scale(decor1, (sirka, 200))
-                decor2_scaled = pygame.transform.scale(decor2, (sirka, 200))
-                decor1_scaled.set_alpha(int(255 * (1 - t)))
-                decor2_scaled.set_alpha(int(255 * t))
-                decor_blend.blit(decor1_scaled, (0, 0))
-                decor_blend.blit(decor2_scaled, (0, 0))
-                self.screen.blit(decor_blend, (x_pozicia, 400))
+            for i in range(15):
+                meter_index = start_meter + i
+                if 0 <= meter_index < len(terrain_map):
+                    image_index = terrain_map[meter_index]
+                    if 0 <= image_index < len(self.terrain_images):
+                        image = self.terrain_images[image_index]
+                        x_pozicia = i * sirka + self.offset
+                        img_scaled = pygame.transform.scale(image, (sirka, 200))
+                        self.screen.blit(img_scaled, (x_pozicia, 220))
 
         # === TLAČIDLÁ ===
         pygame.draw.rect(self.screen, self.RED, self.button_cancel)
