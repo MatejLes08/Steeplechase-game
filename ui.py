@@ -112,20 +112,21 @@ class UI:
 
         # Mapovanie typu terénu na obrázok
         self.terrain_images = [
-            pygame.image.load("assets/start.png").convert(),
-            pygame.image.load("assets/cesta0.png").convert(),
-            pygame.image.load("assets/cesta1.png").convert(),
-            pygame.image.load("assets/cesta2.png").convert(),
-            pygame.image.load("assets/narocne0.png").convert(),
-            pygame.image.load("assets/narocne1.png").convert(),
-            pygame.image.load("assets/narocne2.png").convert(),
-            pygame.image.load("assets/sprinterske0.png").convert(),
-            pygame.image.load("assets/sprinterske1.png").convert(),
-            pygame.image.load("assets/sprinterske2.png").convert(),
-            pygame.image.load("assets/napajadlo0.png").convert(),
-            pygame.image.load("assets/napajadlo1.png").convert(),
-            pygame.image.load("assets/napajadlo2.png").convert(),
-            pygame.image.load("assets/ciel.png").convert()]
+            pygame.image.load("assets/start.png").convert_alpha(),
+            pygame.image.load("assets/cesta0.png").convert_alpha(),
+            pygame.image.load("assets/cesta1.png").convert_alpha(),
+            pygame.image.load("assets/cesta2.png").convert_alpha(),
+            pygame.image.load("assets/narocne0.png").convert_alpha(),
+            pygame.image.load("assets/narocne1.png").convert_alpha(),
+            pygame.image.load("assets/narocne2.png").convert_alpha(),
+            pygame.image.load("assets/sprinterske0.png").convert_alpha(),
+            pygame.image.load("assets/sprinterske1.png").convert_alpha(),
+            pygame.image.load("assets/sprinterske2.png").convert_alpha(),
+            pygame.image.load("assets/napajadlo0.png").convert_alpha(),
+            pygame.image.load("assets/napajadlo1.png").convert_alpha(),
+            pygame.image.load("assets/napajadlo2.png").convert_alpha(),
+            pygame.image.load("assets/ciel.png").convert_alpha(),
+        ]
         
 
     def load_biomes(self):
@@ -414,7 +415,7 @@ class UI:
             start_meter = int(posun // sirka)
             terrain_map = self.draha  # zoznam indexov obrázkov (1–13, vrátane)
 
-            for i in range(15):
+            for i in range(30):
                 meter_index = start_meter + i
                 if 0 <= meter_index < len(terrain_map):
                     image_index = terrain_map[meter_index]
@@ -422,18 +423,7 @@ class UI:
                         image = self.terrain_images[image_index]
                         x_pozicia = i * sirka + self.offset
                         img_scaled = pygame.transform.scale(image, (sirka, 200))
-                        self.screen.blit(img_scaled, (x_pozicia, 220))
-
-
-        # Tlačidlá
-                meter_index = start_meter + i
-                if 0 <= meter_index < len(terrain_map):
-                    image_index = terrain_map[meter_index]
-                    if 0 <= image_index < len(self.terrain_images):
-                        image = self.terrain_images[image_index]
-                        x_pozicia = i * sirka + self.offset
-                        img_scaled = pygame.transform.scale(image, (sirka, 200))
-                        self.screen.blit(img_scaled, (x_pozicia, 220))
+                        self.screen.blit(img_scaled, (x_pozicia, 400))
 
         # === TLAČIDLÁ ===
         pygame.draw.rect(self.screen, self.RED, self.button_cancel)
