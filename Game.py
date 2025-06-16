@@ -19,8 +19,9 @@ class Game:
         self.meno_hraca = meno_hraca  # Nový atribút pre meno hráča
 
         self.terrain = terrain.Terrain()  # Inicializácia s predvolenou mapou
+        self.terrain = terrain.Terrain()  # Inicializácia s predvolenou mapou
 
-        self.posun_cesty = -160  # pixely posunu celej cesty
+        self.posun_cesty = -160 # pixely posunu celej cesty
         self.sirka_useku = 66  # šírka jedného úseku v px
         self.running_game = False
         self.last_time = time.time()
@@ -29,7 +30,7 @@ class Game:
     def set_map(self, map_json):
         # Nastaví mapu podľa zadaného JSON súboru
         self.terrain = terrain.Terrain(mapa_path=map_json)
-        self.posun_cesty = 0  # Reset posunu cesty pre novú mapu
+        self.posun_cesty = -160  # Reset posunu cesty pre novú mapu
         self.aktualny_teren = ""
 
     def start_race(self):
@@ -69,7 +70,7 @@ class Game:
             Utils.ulozit_cas(cas_str, self.meno_hraca)  # Odoslanie času a mena
             self.update_record(*self.najnizsi_cas())  # Aktualizácia rekordu s časom a časovou pečiatkou
 
-        self.posun_cesty = self.prejdene_metre * self.sirka_useku - 160
+        self.posun_cesty = self.prejdene_metre * self.sirka_useku -160
         self.aktualny_teren = typ_terenu
 
     def get_akt_draha(self):
@@ -81,6 +82,46 @@ class Game:
 
     def get_terrain_path(self):
         draha = []
+        
+        teren_typy = [1] * 2000
+
+        for i in range(self.terrain.miesto_narocneho_pasma - self.terrain.NAROCNE_PASMO_RANGE,
+                    self.terrain.miesto_narocneho_pasma + 1):
+            if 0 <= i < len(teren_typy):
+                teren_typy[i] = 2
+
+        for i in range(self.terrain.miesto_sprinterskeho_pasma - self.terrain.SPRINTERSKE_PASMO_RANGE,
+                    self.terrain.miesto_sprinterskeho_pasma + 1):
+            if 0 <= i < len(teren_typy) and teren_typy[i] == 1:
+                teren_typy[i] = 3
+
+        for napajadlo in self.terrain.napajadla:
+            for i in range(napajadlo - self.terrain.NAPAJADLO_RANGE, napajadlo + 1):
+                if 0 <= i < len(teren_typy) and teren_typy[i] == 1:
+                    teren_typy[i] = 4
+
+        counters = {1: 0, 2: 0, 3: 0, 4: 0}
+
+        for typ in teren_typy:
+            if typ == 1:
+                base = 1
+            elif typ == 2:
+                base = 4
+            elif typ == 3:
+                base = 7
+            elif typ == 4:
+                base = 10
+
+            obrazok = base + counters[typ]
+            draha.append(obrazok)
+            counters[typ] = (counters[typ] + 1) % 3
+        draha.reverse()
+        # Pridaj start a ciel bez reverse
+        draha[0] = 0         # start.png
+        draha[-1] = 13       # ciel.png
+
+        print("410:", draha[410])
+        print("dlzka: ", len(draha))
         
         teren_typy = [1] * 2000
 

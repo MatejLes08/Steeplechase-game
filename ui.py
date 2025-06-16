@@ -13,6 +13,8 @@ class Screen(Enum):
     GAME = 3
     PAUSE = 4
 
+
+
 class UI:
     def __init__(self, pridaj_callback, spomal_callback, koniec_callback, gamec, horse):
         # Inicializácia Pygame a uloženie referencie na hru (gamec)
@@ -60,10 +62,10 @@ class UI:
         self.active_input = False
 
         # Tlačidlá v hre (zrušiť, spomaľ, pridať energiu, atď.)
-        self.button_cancel = pygame.Rect(32, 433, 150, 50)
-        self.button_decrease = pygame.Rect(216, 433, 150, 50)
-        self.button_increase = pygame.Rect(416, 433, 150, 50)
-        self.button_pause = pygame.Rect(620, 433, 150, 50)
+        self.button_cancel = pygame.Rect(32, 700, 150, 50)
+        self.button_decrease = pygame.Rect(216, 700, 150, 50)
+        self.button_increase = pygame.Rect(416, 700, 150, 50)
+        self.button_pause = pygame.Rect(620, 700, 150, 50)
 
         # Tlačidlá v hlavnom MENU
         self.button_start_menu = pygame.Rect(300, 250, 200, 50)
@@ -121,10 +123,59 @@ class UI:
         
 
 
+<<<<<<< HEAD
+        # Mapovanie typu terénu na obrázok
+        self.terrain_images = [
+            pygame.image.load("assets/start.png").convert(),
+            pygame.image.load("assets/cesta0.png").convert(),
+            pygame.image.load("assets/cesta1.png").convert(),
+            pygame.image.load("assets/cesta2.png").convert(),
+            pygame.image.load("assets/narocne0.png").convert(),
+            pygame.image.load("assets/narocne1.png").convert(),
+            pygame.image.load("assets/narocne2.png").convert(),
+            pygame.image.load("assets/sprinterske0.png").convert(),
+            pygame.image.load("assets/sprinterske1.png").convert(),
+            pygame.image.load("assets/sprinterske2.png").convert(),
+            pygame.image.load("assets/napajadlo0.png").convert(),
+            pygame.image.load("assets/napajadlo1.png").convert(),
+            pygame.image.load("assets/napajadlo2.png").convert(),
+            pygame.image.load("assets/ciel.png").convert()]
+        
+
+    def load_biomes(self):
+        # Načítanie biomov s unikátnymi mapovými obrázkami a JSON súbormi
+        return [
+            {
+                "name": "Les",
+                "x_start": 0,
+                "image": pygame.image.load("assets/cesta4_sideways.png").convert(),
+                "decoration": pygame.image.load("assets/cesta4_sideways.png").convert_alpha(),
+                "map_image": "assets/mapa1.png",
+                "map_json": "mapa1.json"
+            },
+            {
+                "name": "Púšť",
+                "x_start": 1000,
+                "image": pygame.image.load("assets/cesta4_sideways.png").convert(),
+                "decoration": pygame.image.load("assets/cesta4_sideways.png").convert_alpha(),
+                "map_image": "assets/mapa2.png",
+                "map_json": "mapa2.json"
+            },
+            {
+                "name": "Sneh",
+                "x_start": 2000,
+                "image": pygame.image.load("assets/cesta4_sideways.png").convert(),
+                "decoration": pygame.image.load("assets/cesta4_sideways.png").convert_alpha(),
+                "map_image": "assets/mapa3.jpg",
+                "map_json": "mapa3.json"
+            }
+        ]
+=======
 
     
 
     
+>>>>>>> origin/main-old
 
     def draw_menu(self):
         """
@@ -159,6 +210,7 @@ class UI:
         render_button_text("Ukončiť", self.button_exit_menu)
 
         pygame.display.flip()  # zobraziť všetko na obrazovke
+
 
     def draw_map_view(self):
         """
@@ -198,8 +250,8 @@ class UI:
             self.screen.blit(offline_text, (self.button_server.right + 10, self.height - 60))
 
         # --- pravá strana: podrobnosti mapy ---
-        # Získanie názvu mapy (vždy "Mapy")
-        map_name = "Mapy"
+        # Získanie názvu mapy cez volanie metódy (fallback na "MAPA")
+        map_name = getattr(self.game, 'get_map_name', lambda: "MAPA")()
         lbl_map = self.font.render(map_name, True, self.BLACK)
         mx = half + (half - lbl_map.get_width()) // 2
         self.screen.blit(lbl_map, (mx, 20))
@@ -216,24 +268,30 @@ class UI:
             error_text = self.font.render("Obrázok mapy nenájdený", True, self.BLACK)
             self.screen.blit(error_text, (half + 30, 150))
 
-        # Tlačidlá Hrať, Späť a prepínanie máp v pravom bloku
-        pygame.draw.rect(self.screen, self.GRAY, self.button_play_map)
-        pygame.draw.rect(self.screen, self.GRAY, self.button_back_map)
+        
+        # Tlačidlá Hrať a Späť v pravom bloku, tlačidlá < a >
         pygame.draw.rect(self.screen, self.GRAY, self.button_prev_map)
         pygame.draw.rect(self.screen, self.GRAY, self.button_next_map)
+        pygame.draw.rect(self.screen, self.GRAY, self.button_play_map)
+        pygame.draw.rect(self.screen, self.GRAY, self.button_back_map)
 
-        def btn_text(text, rect):
-            lbl = self.font.render(text, True, self.BLACK)
-            lbl_rect = lbl.get_rect(center=rect.center)
-            self.screen.blit(lbl, lbl_rect)
 
-        btn_text("Hrať", self.button_play_map)
-        btn_text("Späť", self.button_back_map)
-        btn_text("<", self.button_prev_map)
-        btn_text(">", self.button_next_map)
+        self.btn_text("<", self.button_prev_map)
+        self.btn_text(">", self.button_next_map)
+
+        self.btn_text("Hrať", self.button_play_map)
+        self.btn_text("Späť", self.button_back_map)
 
         pygame.display.flip()
 
+<<<<<<< HEAD
+    def btn_text(self, text, rect):
+        lbl = self.font.render(text, True, self.BLACK)
+        lbl_rect = lbl.get_rect(center=rect.center)
+        self.screen.blit(lbl, lbl_rect)
+
+=======
+>>>>>>> origin/main-old
     def set_selected_map(self):
         # Nastaví vybranú mapu v Game objekte
         selected_biome = self.biomes[self.selected_map_index]
@@ -300,30 +358,88 @@ class UI:
 
         pygame.display.flip()
 
+
+
     def draw_ui(self):
         self.screen.fill(self.ORANGE)
+<<<<<<< HEAD
+=======
         self.draw_text(self.screen, self.font, "Rýchlosť", self.rychlost, 20, 60)
         self.draw_energy(self.screen, self.font, self.energia, 91, 20,
                         green=self.GREEN, yellow=self.YELLOW, red=self.RED, black=self.BLACK)
+>>>>>>> origin/main-old
 
-        self.metre = self.fontMetre.render(str(self.neprejdenych) + "m", True, self.BLACK)
-        self.metre_rect = self.metre.get_rect(center=(self.screen.get_width() // 2, 40))
-        self.screen.blit(self.metre, self.metre_rect)
+        # --- ZÁKLADNÉ ROZMERY ---
+        margin = 50
+        icon_size = 50
+        y_top = 50
+        bar_w, bar_h = 200, 30
+        x_center = self.screen.get_width() // 2
+        x_right = self.screen.get_width() - margin
 
+<<<<<<< HEAD
+        # === ĽAVÝ STĹPEC ===
+        bar_x = margin + icon_size +40
+        bar_y = y_top // 2 + 10
+
+        # Energia (bar)
+        pygame.draw.rect(self.screen, self.BLACK, (bar_x, bar_y, bar_w, bar_h), 4)
+        stamina = self.energia
+        bar_color = self.GREEN if stamina > 66 else self.YELLOW if stamina > 33 else self.RED
+        pygame.draw.rect(self.screen, bar_color, (bar_x, bar_y, bar_w * stamina / 100, bar_h))
+
+        # Text percenta v strede baru
+        stamina_text = f"{stamina}%"
+        stamina_surf = self.font.render(stamina_text, True, self.BLACK)
+        stamina_rect = stamina_surf.get_rect(center=(bar_x + bar_w // 2, bar_y + bar_h - 12))
+        self.screen.blit(stamina_surf, stamina_rect)
+
+        # Preťaženie vedľa baru
+        pretazenie_text = f"{self.pretazenie}%/s"
+        pretazenie_surf = self.font.render(pretazenie_text, True, self.BLACK)
+        self.screen.blit(pretazenie_surf, (bar_x + bar_w + 20, bar_y))
+
+        # Rýchlosť (pod barom)
+        self.draw_text(self.screen, self.font, "Rýchlosť: ", f"{self.rychlost} km/h", margin, y_top + icon_size)
+
+        # === STREDNÝ STĹPEC ===
+        # Prejdené metre
+        metres_text = f"{self.neprejdenych} m"
+        metres_surf = self.fontMetre.render(metres_text, True, self.BLACK)
+        metres_rect = metres_surf.get_rect(center=(x_center, y_top))
+        self.screen.blit(metres_surf, metres_rect)
+
+        # Terén
+=======
+>>>>>>> origin/main-old
         if self.game:
             self.aktualna_draha = self.game.get_akt_draha()
-        self.draw_text(self.screen, self.font, "Terén", self.aktualna_draha, 20, 100)
+            
+        terrain_text = f"{self.aktualna_draha}"
+        terrain_surf = self.font.render(terrain_text, True, self.BLACK)
+        terrain_rect = terrain_surf.get_rect(center=(x_center, y_top + 50))
+        self.screen.blit(terrain_surf, terrain_rect)
 
+        # === PRAVÝ STĹPEC ===
+        # Čas
         self.cas = self.fontCas.render(self.stopky, True, self.BLACK)
-        self.cas_rect = self.cas.get_rect(center=(700, 40))
+        self.cas_rect = self.cas.get_rect(topright=(x_right, y_top - 30))
         self.screen.blit(self.cas, self.cas_rect)
 
-        self.draw_text(self.screen, self.font, "Rekord", self.osobny_rekord, 580, 70)  # Display personal best as "Rekord"
-        self.draw_text(self.screen, self.font, "Preťaženie", self.pretazenie, 580, 110)
+        # Rekord
+        rekord_text = f"Rekord: {self.osobny_rekord}"
+        rekord_surf = self.font.render(rekord_text, True, self.BLACK)
+        rekord_rect = rekord_surf.get_rect(topright=(x_right, y_top + 60))
+        self.screen.blit(rekord_surf, rekord_rect)
 
+        # === TLAČIDLO PAUZA (hore vľavo) ===
         pygame.draw.rect(self.screen, self.GRAY, self.button_pause)
         self.render_button_text(self.screen, self.font, "Pauza", self.button_pause)
 
+<<<<<<< HEAD
+        # === POSÚVAJÚCA SA CESTA ===
+=======
+>>>>>>> origin/main-old
         if self.game:
             posun = self.game.posun_cesty
             sirka = self.game.sirka_useku
@@ -340,17 +456,22 @@ class UI:
                         x_pozicia = i * sirka + self.offset
                         img_scaled = pygame.transform.scale(image, (sirka, 200))
                         self.screen.blit(img_scaled, (x_pozicia, 220))
+<<<<<<< HEAD
+=======
 
+>>>>>>> origin/main-old
 
-        # Tlačidlá
+        # === TLAČIDLÁ ===
         pygame.draw.rect(self.screen, self.RED, self.button_cancel)
         pygame.draw.rect(self.screen, self.GRAY, self.button_decrease)
         pygame.draw.rect(self.screen, self.GRAY, self.button_increase)
         self.render_button_text(self.screen, self.font, "Zrušiť", self.button_cancel, color=self.BLACK)
         self.render_button_text(self.screen, self.font, "Spomaľ", self.button_decrease, color=self.BLACK)
         self.render_button_text(self.screen, self.font, "Pridaj", self.button_increase, color=self.BLACK)
-        # vykreslenie obrazku hráča
+
+        # === Hráč ===
         self.screen.blit(self.horse.current_image, (self.horse.position_x, self.horse.position_y))
+
         pygame.display.flip()
 
 
@@ -435,6 +556,8 @@ class UI:
                         self.selected_map_index = (self.selected_map_index - 1) % len(self.biomes)
                     elif self.button_next_map.collidepoint(event.pos):
                         self.selected_map_index = (self.selected_map_index + 1) % len(self.biomes)
+
+
                 # GAME obrazovka: pôvodné tlačidlá v hre
                 elif self.current_screen == Screen.GAME:
                     if self.button_cancel.collidepoint(event.pos):
@@ -456,6 +579,9 @@ class UI:
                             self.restart_callback()
                         self.audio_manager.stop_music()
                         self.current_screen = Screen.MENU
+                        
+                        
+
 
             # Spracovanie písania mena v MENU
             if event.type == pygame.KEYDOWN and self.current_screen == Screen.MENU and self.active_input:
@@ -521,6 +647,7 @@ class UI:
     def set_restart_callback(self, callback):
         self.restart_callback = callback
 
+
     def reset(self, horse, game, pridaj, spomal, koniec, update_ui, update_record):
         self.horse = horse
         self.game = game
@@ -535,6 +662,8 @@ class UI:
         self.pretaz = 0
         self.game.update_ui = update_ui
         self.game.update_record = update_record
+
+
 
     def run(self):
         # Hlavná slučka aplikácie
@@ -557,6 +686,7 @@ class UI:
                 self.horse.update_animacia()
             elif self.current_screen == Screen.PAUSE:
                 self.draw_pause_screen()
+
 
             # Limit FPS a dt pre update hry
             dt = clock.tick(60) / 1000
