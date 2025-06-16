@@ -33,7 +33,7 @@ class UI:
         self.fontMetre = pygame.font.SysFont(None, 110)
         self.fontCas = pygame.font.SysFont("Arial", 70)
 
-        self.biomes = self.load_biomes()
+        
 
         # Definícia farieb v RGB
         self.WHITE = (255, 255, 255)
@@ -96,17 +96,34 @@ class UI:
         self.server_online = False
         self.server_url = "https://9cf54da1-84f4-45d0-b6fd-0817a0a4a654-00-2s3626w9v692a.janeway.replit.dev/"
 
-        # Aktuálna obrazovka: štartujeme v MENU
+        # Aktuálna obrazovka (štartujeme v MENU)
         self.current_screen = Screen.MENU
 
         # Tlačidlá pre pauzu
         self.button_continue = pygame.Rect(self.width // 2 - 160, 200, 150, 50)
         self.button_back_to_menu = pygame.Rect(self.width // 2 + 10, 200, 150, 50)
 
-        # Inicializácia AudioManager
-        self.audio_manager = AudioManager()
+        # Mapovanie typu terénu na obrázok
+        self.terrain_images = [
+            pygame.image.load("assets/start.png").convert(),
+            pygame.image.load("assets/cesta0.png").convert(),
+            pygame.image.load("assets/cesta1.png").convert(),
+            pygame.image.load("assets/cesta2.png").convert(),
+            pygame.image.load("assets/narocne0.png").convert(),
+            pygame.image.load("assets/narocne1.png").convert(),
+            pygame.image.load("assets/narocne2.png").convert(),
+            pygame.image.load("assets/sprinterske0.png").convert(),
+            pygame.image.load("assets/sprinterske1.png").convert(),
+            pygame.image.load("assets/sprinterske2.png").convert(),
+            pygame.image.load("assets/napajadlo0.png").convert(),
+            pygame.image.load("assets/napajadlo1.png").convert(),
+            pygame.image.load("assets/napajadlo2.png").convert(),
+            pygame.image.load("assets/ciel.png").convert()]
+            
+        
 
 
+<<<<<<< HEAD
         # Mapovanie typu terénu na obrázok
         self.terrain_images = [
             pygame.image.load("assets/start.png").convert(),
@@ -153,6 +170,12 @@ class UI:
                 "map_json": "mapa3.json"
             }
         ]
+=======
+
+    
+
+    
+>>>>>>> origin/main-old
 
     def draw_menu(self):
         """
@@ -261,11 +284,14 @@ class UI:
 
         pygame.display.flip()
 
+<<<<<<< HEAD
     def btn_text(self, text, rect):
         lbl = self.font.render(text, True, self.BLACK)
         lbl_rect = lbl.get_rect(center=rect.center)
         self.screen.blit(lbl, lbl_rect)
 
+=======
+>>>>>>> origin/main-old
     def set_selected_map(self):
         # Nastaví vybranú mapu v Game objekte
         selected_biome = self.biomes[self.selected_map_index]
@@ -336,6 +362,12 @@ class UI:
 
     def draw_ui(self):
         self.screen.fill(self.ORANGE)
+<<<<<<< HEAD
+=======
+        self.draw_text(self.screen, self.font, "Rýchlosť", self.rychlost, 20, 60)
+        self.draw_energy(self.screen, self.font, self.energia, 91, 20,
+                        green=self.GREEN, yellow=self.YELLOW, red=self.RED, black=self.BLACK)
+>>>>>>> origin/main-old
 
         # --- ZÁKLADNÉ ROZMERY ---
         margin = 50
@@ -345,6 +377,7 @@ class UI:
         x_center = self.screen.get_width() // 2
         x_right = self.screen.get_width() - margin
 
+<<<<<<< HEAD
         # === ĽAVÝ STĹPEC ===
         bar_x = margin + icon_size +40
         bar_y = y_top // 2 + 10
@@ -377,6 +410,8 @@ class UI:
         self.screen.blit(metres_surf, metres_rect)
 
         # Terén
+=======
+>>>>>>> origin/main-old
         if self.game:
             self.aktualna_draha = self.game.get_akt_draha()
             
@@ -401,7 +436,10 @@ class UI:
         pygame.draw.rect(self.screen, self.GRAY, self.button_pause)
         self.render_button_text(self.screen, self.font, "Pauza", self.button_pause)
 
+<<<<<<< HEAD
         # === POSÚVAJÚCA SA CESTA ===
+=======
+>>>>>>> origin/main-old
         if self.game:
             posun = self.game.posun_cesty
             sirka = self.game.sirka_useku
@@ -418,6 +456,10 @@ class UI:
                         x_pozicia = i * sirka + self.offset
                         img_scaled = pygame.transform.scale(image, (sirka, 200))
                         self.screen.blit(img_scaled, (x_pozicia, 220))
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/main-old
 
         # === TLAČIDLÁ ===
         pygame.draw.rect(self.screen, self.RED, self.button_cancel)
