@@ -123,45 +123,6 @@ class Game:
         print("410:", draha[410])
         print("dlzka: ", len(draha))
         
-        teren_typy = [1] * 2000
-
-        for i in range(self.terrain.miesto_narocneho_pasma - self.terrain.NAROCNE_PASMO_RANGE,
-                    self.terrain.miesto_narocneho_pasma + 1):
-            if 0 <= i < len(teren_typy):
-                teren_typy[i] = 2
-
-        for i in range(self.terrain.miesto_sprinterskeho_pasma - self.terrain.SPRINTERSKE_PASMO_RANGE,
-                    self.terrain.miesto_sprinterskeho_pasma + 1):
-            if 0 <= i < len(teren_typy) and teren_typy[i] == 1:
-                teren_typy[i] = 3
-
-        for napajadlo in self.terrain.napajadla:
-            for i in range(napajadlo - self.terrain.NAPAJADLO_RANGE, napajadlo + 1):
-                if 0 <= i < len(teren_typy) and teren_typy[i] == 1:
-                    teren_typy[i] = 4
-
-        counters = {1: 0, 2: 0, 3: 0, 4: 0}
-
-        for typ in teren_typy:
-            if typ == 1:
-                base = 1
-            elif typ == 2:
-                base = 4
-            elif typ == 3:
-                base = 7
-            elif typ == 4:
-                base = 10
-
-            obrazok = base + counters[typ]
-            draha.append(obrazok)
-            counters[typ] = (counters[typ] + 1) % 3
-        draha.reverse()
-        # Pridaj start a ciel bez reverse
-        draha[0] = 0         # start.png
-        draha[-1] = 13       # ciel.png
-
-        print("410:", draha[410])
-        print("dlzka: ", len(draha))
         return draha
 
 
