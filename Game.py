@@ -18,7 +18,7 @@ class Game:
         self.horse = horse
         self.meno_hraca = meno_hraca  # Nový atribút pre meno hráča
 
-        self.terrain = terrain.Terrain()  # Inicializácia s predvolenou mapou
+        self.map_name = "mapa1"  # Predvolená mapa
         self.terrain = terrain.Terrain()  # Inicializácia s predvolenou mapou
 
         self.posun_cesty = -160 # pixely posunu celej cesty
@@ -28,7 +28,8 @@ class Game:
         self.aktualny_teren = ""
 
     def set_map(self, map_json):
-        # Nastaví mapu podľa zadaného JSON súboru
+        # Nastaví mapu podľa zadaného JSON súboru a aktualizuje názov mapy
+        self.map_name = map_json.split('.')[0]  # Extrahuje názov mapy bez prípony
         self.terrain = terrain.Terrain(mapa_path=map_json)
         self.posun_cesty = -160  # Reset posunu cesty pre novú mapu
         self.aktualny_teren = ""
@@ -63,35 +64,44 @@ class Game:
         self.pretazenie = self.horse.pretazenie
 
         cas_str = f"{self.minuty}:{int(self.cas):02d}:{int((self.cas - int(self.cas)) * 100):02d}"
-        self.update_ui(int(rych * zrychlenie), self.ostava, int(sila), cas_str, self.pretazenie * 100)
+        self.update_ui(int(rych * zrychlenie), self.ostava, int(sila), cas_str, self.pretazenie * 100, self.map_name)
 
         if self.prejdene_metre >= self.DRAHA:
             self.running_game = False
-            Utils.ulozit_cas(cas_str, self.meno_hraca)  # Odoslanie času a mena
-            self.update_record(*self.najnizsi_cas())  # Aktualizácia rekordu s časom a časovou pečiatkou
+            Utils.ulozit_cas(cas_str, self.meno_hraca, self.map_name)  # Odoslanie času, mena a mapy
+            # Aktualizácia rekordu s novým časom, časovou pečiatkou a osobným rekordom
+            timestamp = time.strftime("%Y-%m-%d %H:%M:%S")  # Lokálna časová pečiatka
+            self.update_record(cas_str, timestamp,
+                               Utils.osobny_rekord(self.meno_hraca, self.map_name))  # Fix: Pass new race time
 
-        self.posun_cesty = self.prejdene_metre * self.sirka_useku -160
+        # Aktualizácia posunu cesty a typu terénu
+        self.posun_cesty = self.prejdene_metre * self.sirka_useku - 160
         self.aktualny_teren = typ_terenu
 
     def get_akt_draha(self):
         return self.aktualny_teren
 
+    def get_map_name(self):
+        # Vráti názov aktuálnej mapy
+        return self.map_name
+
     def najnizsi_cas(self):
-        # Vráti najnižší čas a časovú pečiatku ako tuple
-        return Utils.najnizsi_cas()
+        # Vráti najnižší čas a časovú pečiatku pre aktuálnu mapu ako tuple
+        return Utils.najnizsi_cas(self.map_name)
 
     def get_terrain_path(self):
+        # Vytvorí zoznam obrázkov pre zobrazenie dráhy
         draha = []
         
         teren_typy = [1] * 2000
 
         for i in range(self.terrain.miesto_narocneho_pasma - self.terrain.NAROCNE_PASMO_RANGE,
-                    self.terrain.miesto_narocneho_pasma + 1):
+                       self.terrain.miesto_narocneho_pasma + 1):
             if 0 <= i < len(teren_typy):
                 teren_typy[i] = 2
 
         for i in range(self.terrain.miesto_sprinterskeho_pasma - self.terrain.SPRINTERSKE_PASMO_RANGE,
-                    self.terrain.miesto_sprinterskeho_pasma + 1):
+                       self.terrain.miesto_sprinterskeho_pasma + 1):
             if 0 <= i < len(teren_typy) and teren_typy[i] == 1:
                 teren_typy[i] = 3
 
@@ -117,18 +127,14 @@ class Game:
             counters[typ] = (counters[typ] + 1) % 3
         draha.reverse()
         # Pridaj start a ciel bez reverse
-        draha[0] = 0         # start.png
-        draha[-1] = 13       # ciel.png
+        draha[0] = 0  # start.png
+        draha[-1] = 13  # ciel.png
 
         print("410:", draha[410])
         print("dlzka: ", len(draha))
         
         return draha
 
-
-
-
-
-
     def set_meno_hraca(self, meno):
-        self.meno_hraca = meno  # Metóda na aktualizáciu mena
+        # Metóda na aktualizáciu mena
+        self.meno_hraca = meno

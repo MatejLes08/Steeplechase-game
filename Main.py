@@ -20,7 +20,8 @@ def spusti_hru():
                 horse=horse,
                 meno_hraca="Meno")
 
-    def update_ui(rychlost, ostava, sila, cas_str, pretazenie):
+    def update_ui(rychlost, ostava, sila, cas_str, pretazenie, map_name):
+        # Aktualizuje UI s hernými údajmi vrátane názvu mapy
         ui.rychlost = rychlost
         ui.neprejdenych = ostava
         ui.energia = sila
@@ -28,8 +29,9 @@ def spusti_hru():
         ui.pretazenie = pretazenie
         ui.draw_ui()
 
-    def update_record(cas, timestamp):
-        ui.rekord = cas
+    def update_record(cas, timestamp, osobny):
+        # Aktualizuje rekordy v UI s celkovým a osobným časom
+        ui.update_record(cas, timestamp, osobny)
 
     game.update_ui = update_ui
     game.update_record = update_record
