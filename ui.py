@@ -33,7 +33,7 @@ class UI:
         self.fontMetre = pygame.font.SysFont(None, 110)
         self.fontCas = pygame.font.SysFont("Arial", 70)
 
-        
+        self.biomes = self.load_biomes()
 
         # Definícia farieb v RGB
         self.WHITE = (255, 255, 255)
@@ -78,6 +78,7 @@ class UI:
         # Nové tlačidlo pre server
         self.button_server = pygame.Rect(20, self.height - 70, 40, 40)
         # Tlačidlá pre prepínanie máp
+        # Tlačidlá pre prepínanie máp
         self.button_prev_map = pygame.Rect(mid_x + 140, 337, 60, 40)
         self.button_next_map = pygame.Rect(mid_x + 210, 337, 60, 40)
         self.selected_map_index = 0  # Index aktuálne vybranej mapy
@@ -95,35 +96,20 @@ class UI:
         # Stav servera
         self.server_online = False
         self.server_url = "https://9cf54da1-84f4-45d0-b6fd-0817a0a4a654-00-2s3626w9v692a.janeway.replit.dev/"
+        self.server_url = "https://9cf54da1-84f4-45d0-b6fd-0817a0a4a654-00-2s3626w9v692a.janeway.replit.dev/"
 
-        # Aktuálna obrazovka (štartujeme v MENU)
+        # Aktuálna obrazovka: štartujeme v MENU
         self.current_screen = Screen.MENU
 
         # Tlačidlá pre pauzu
         self.button_continue = pygame.Rect(self.width // 2 - 160, 200, 150, 50)
         self.button_back_to_menu = pygame.Rect(self.width // 2 + 10, 200, 150, 50)
+        self.button_back_to_menu = pygame.Rect(self.width // 2 + 10, 200, 150, 50)
 
-        # Mapovanie typu terénu na obrázok
-        self.terrain_images = [
-            pygame.image.load("assets/start.png").convert(),
-            pygame.image.load("assets/cesta0.png").convert(),
-            pygame.image.load("assets/cesta1.png").convert(),
-            pygame.image.load("assets/cesta2.png").convert(),
-            pygame.image.load("assets/narocne0.png").convert(),
-            pygame.image.load("assets/narocne1.png").convert(),
-            pygame.image.load("assets/narocne2.png").convert(),
-            pygame.image.load("assets/sprinterske0.png").convert(),
-            pygame.image.load("assets/sprinterske1.png").convert(),
-            pygame.image.load("assets/sprinterske2.png").convert(),
-            pygame.image.load("assets/napajadlo0.png").convert(),
-            pygame.image.load("assets/napajadlo1.png").convert(),
-            pygame.image.load("assets/napajadlo2.png").convert(),
-            pygame.image.load("assets/ciel.png").convert()]
-            
-        
+        # Inicializácia AudioManager
+        self.audio_manager = AudioManager()
 
 
-<<<<<<< HEAD
         # Mapovanie typu terénu na obrázok
         self.terrain_images = [
             pygame.image.load("assets/start.png").convert(),
@@ -170,12 +156,6 @@ class UI:
                 "map_json": "mapa3.json"
             }
         ]
-=======
-
-    
-
-    
->>>>>>> origin/main-old
 
     def draw_menu(self):
         """
@@ -284,14 +264,11 @@ class UI:
 
         pygame.display.flip()
 
-<<<<<<< HEAD
     def btn_text(self, text, rect):
         lbl = self.font.render(text, True, self.BLACK)
         lbl_rect = lbl.get_rect(center=rect.center)
         self.screen.blit(lbl, lbl_rect)
 
-=======
->>>>>>> origin/main-old
     def set_selected_map(self):
         # Nastaví vybranú mapu v Game objekte
         selected_biome = self.biomes[self.selected_map_index]
@@ -306,7 +283,7 @@ class UI:
                 return b1["image"], b2["image"], b1["decoration"], b2["decoration"], t
         b = self.biomes[-1]
         return b["image"], b["image"], b["decoration"], b["decoration"], 0.0
-
+    
     def get_current_biome_name(self, world_x):
         for i in range(len(self.biomes) - 1):
             if self.biomes[i]["x_start"] <= world_x < self.biomes[i + 1]["x_start"]:
@@ -362,12 +339,6 @@ class UI:
 
     def draw_ui(self):
         self.screen.fill(self.ORANGE)
-<<<<<<< HEAD
-=======
-        self.draw_text(self.screen, self.font, "Rýchlosť", self.rychlost, 20, 60)
-        self.draw_energy(self.screen, self.font, self.energia, 91, 20,
-                        green=self.GREEN, yellow=self.YELLOW, red=self.RED, black=self.BLACK)
->>>>>>> origin/main-old
 
         # --- ZÁKLADNÉ ROZMERY ---
         margin = 50
@@ -377,7 +348,6 @@ class UI:
         x_center = self.screen.get_width() // 2
         x_right = self.screen.get_width() - margin
 
-<<<<<<< HEAD
         # === ĽAVÝ STĹPEC ===
         bar_x = margin + icon_size +40
         bar_y = y_top // 2 + 10
@@ -410,8 +380,6 @@ class UI:
         self.screen.blit(metres_surf, metres_rect)
 
         # Terén
-=======
->>>>>>> origin/main-old
         if self.game:
             self.aktualna_draha = self.game.get_akt_draha()
             
@@ -436,14 +404,13 @@ class UI:
         pygame.draw.rect(self.screen, self.GRAY, self.button_pause)
         self.render_button_text(self.screen, self.font, "Pauza", self.button_pause)
 
-<<<<<<< HEAD
         # === POSÚVAJÚCA SA CESTA ===
-=======
->>>>>>> origin/main-old
         if self.game:
             posun = self.game.posun_cesty
             sirka = self.game.sirka_useku
             self.offset = -int(posun % sirka)
+            start_meter = int(posun // sirka)
+            terrain_map = self.draha  # zoznam indexov obrázkov (1–13, vrátane)
             start_meter = int(posun // sirka)
             terrain_map = self.draha  # zoznam indexov obrázkov (1–13, vrátane)
 
@@ -456,10 +423,17 @@ class UI:
                         x_pozicia = i * sirka + self.offset
                         img_scaled = pygame.transform.scale(image, (sirka, 200))
                         self.screen.blit(img_scaled, (x_pozicia, 220))
-<<<<<<< HEAD
-=======
 
->>>>>>> origin/main-old
+
+        # Tlačidlá
+                meter_index = start_meter + i
+                if 0 <= meter_index < len(terrain_map):
+                    image_index = terrain_map[meter_index]
+                    if 0 <= image_index < len(self.terrain_images):
+                        image = self.terrain_images[image_index]
+                        x_pozicia = i * sirka + self.offset
+                        img_scaled = pygame.transform.scale(image, (sirka, 200))
+                        self.screen.blit(img_scaled, (x_pozicia, 220))
 
         # === TLAČIDLÁ ===
         pygame.draw.rect(self.screen, self.RED, self.button_cancel)
@@ -473,6 +447,7 @@ class UI:
         self.screen.blit(self.horse.current_image, (self.horse.position_x, self.horse.position_y))
 
         pygame.display.flip()
+
 
 
     def handle_events(self):
@@ -491,6 +466,7 @@ class UI:
                 self.button_next_map = pygame.Rect(mid_x + 210, 337, 60, 40)
                 self.button_server = pygame.Rect(20, self.height - 70, 40, 40)
                 self.button_continue = pygame.Rect(self.width // 2 - 160, 200, 150, 50)
+                self.button_back_to_menu = pygame.Rect(self.width // 2 + 10, 200, 150, 50)
                 self.button_back_to_menu = pygame.Rect(self.width // 2 + 10, 200, 150, 50)
             if event.type == pygame.QUIT:
                 return False
@@ -546,6 +522,8 @@ class UI:
                     if self.button_play_map.collidepoint(event.pos):
                         # Nastaví vybranú mapu a prepne na hernú obrazovku
                         self.set_selected_map()
+                        # Nastaví vybranú mapu a prepne na hernú obrazovku
+                        self.set_selected_map()
                         self.current_screen = Screen.GAME
                         self.audio_manager.start_music()  # Spusti hudbu pri prechode do hry
                     elif self.button_back_map.collidepoint(event.pos):
@@ -599,11 +577,13 @@ class UI:
                                 best_times = {}
                                 for entry in times:
                                     name = entry.get("name") or "Anonymný hráč"
+                                    name = entry.get("name") or "Anonymný hráč"
                                     time_stotiny = Utils.extrahuj_cas_na_stotiny(entry)
                                     if name not in times or time_stotiny < Utils.extrahuj_cas_na_stotiny({"time": best_times[name]["time"]}):
                                         best_times[name] = entry
                                 sorted_times = sorted(best_times.values(), key=Utils.extrahuj_cas_na_stotiny)
                                 # Vytvoriť zoznam tupľov (poradie, meno, čas)
+                                self.scores = [(i + 1, entry.get("name") or "Anonymný hráč", entry["time"]) for i, entry in enumerate(sorted_times)]
                                 self.scores = [(i + 1, entry.get("name") or "Anonymný hráč", entry["time"]) for i, entry in enumerate(sorted_times)]
                                 # Nájdenie hráčovho skóre (ak existuje)
                                 player_scores = [s for s in sorted_times if s["name"].strip().lower() == self.meno_hraca.strip().lower()]
@@ -659,6 +639,7 @@ class UI:
         self.energia = 100
         self.rychlost = 0
         self.neprejdenych = 0
+        self.pretaz = 0
         self.pretaz = 0
         self.game.update_ui = update_ui
         self.game.update_record = update_record
