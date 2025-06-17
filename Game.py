@@ -3,6 +3,7 @@ import random
 import terrain
 from Horse import Horse
 from Utils import Utils
+from ui import Screen
 
 class Game:
     def __init__(self, update_ui_callback, update_record_callback, horse, meno_hraca=""):
@@ -18,7 +19,6 @@ class Game:
         self.horse = horse
         self.meno_hraca = meno_hraca  # Nový atribút pre meno hráča
 
-        self.terrain = terrain.Terrain()  # Inicializácia s predvolenou mapou
         self.terrain = terrain.Terrain()  # Inicializácia s predvolenou mapou
 
         self.posun_cesty = -160 # pixely posunu celej cesty
@@ -68,9 +68,10 @@ class Game:
         if self.prejdene_metre >= self.DRAHA:
             self.running_game = False
             Utils.ulozit_cas(cas_str, self.meno_hraca)  # Odoslanie času a mena
-            self.update_record(*self.najnizsi_cas())  # Aktualizácia rekordu s časom a časovou pečiatkou
+            self.update_record(cas_str, time.time())  # Aktualizácia rekordu s časom a časovou pečiatkou
+            self.ui.current_screen = Screen.END_GAME
 
-        self.posun_cesty = self.prejdene_metre * self.sirka_useku -160
+        self.posun_cesty = self.prejdene_metre * self.sirka_useku - 160
         self.aktualny_teren = typ_terenu
 
     def get_akt_draha(self):
@@ -82,16 +83,15 @@ class Game:
 
     def get_terrain_path(self):
         draha = []
-        
         teren_typy = [1] * 2000
 
         for i in range(self.terrain.miesto_narocneho_pasma - self.terrain.NAROCNE_PASMO_RANGE,
-                    self.terrain.miesto_narocneho_pasma + 1):
+                       self.terrain.miesto_narocneho_pasma + 1):
             if 0 <= i < len(teren_typy):
                 teren_typy[i] = 2
 
         for i in range(self.terrain.miesto_sprinterskeho_pasma - self.terrain.SPRINTERSKE_PASMO_RANGE,
-                    self.terrain.miesto_sprinterskeho_pasma + 1):
+                       self.terrain.miesto_sprinterskeho_pasma + 1):
             if 0 <= i < len(teren_typy) and teren_typy[i] == 1:
                 teren_typy[i] = 3
 
@@ -125,10 +125,8 @@ class Game:
         
         return draha
 
-
-
-
-
-
     def set_meno_hraca(self, meno):
         self.meno_hraca = meno  # Metóda na aktualizáciu mena
+
+    def set_ui(self, ui):
+        self.ui = ui
