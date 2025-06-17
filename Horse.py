@@ -62,7 +62,7 @@ class Horse:
 
         elif self.sila <= 0:
             if self.rychlost > 0:
-                self.rychlost -= 4  # pomaly dobieha do zastavenia
+                self.rychlost -= 1  # pomaly dobieha do zastavenia
             if self.rychlost < 0:
                 self.rychlost = 0
             self.pretazenie = 0  # žiadne ďalšie zvyšovanie únavy
@@ -70,6 +70,8 @@ class Horse:
         elif self.rychlost <= 12:
             if self.sila < self.VYDRZ:
                 self.pretazenie = -oddych_cis  # mierny oddych
+            else:
+                self.pretazenie = 0
 
         elif self.rychlost <= 24:
             self.pretazenie = self.rychlost / narocnost
@@ -120,3 +122,16 @@ class Horse:
 
     def get_ostava(self):
         return round(self.DRAHA - self.prejdene_metre)
+
+    def reset(self):
+        # Resetuje koňa do počiatočného stavu
+        self.rychlost = 0
+        self.sila = self.VYDRZ
+        self.pretazenie = 0
+        self.prejdene_metre = 0
+        self.ostava = self.DRAHA
+        self.player_frame_index = 0
+        self.animation_speed = 0.1
+        self.current_image = self.statie[0]
+        self.position_x = 70
+        self.position_y = 450

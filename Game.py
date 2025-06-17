@@ -3,6 +3,7 @@ import random
 import terrain
 from Horse import Horse
 from Utils import Utils
+from ui import Screen
 
 class Game:
     def __init__(self, update_ui_callback, update_record_callback, horse, meno_hraca=""):
@@ -69,10 +70,10 @@ class Game:
         if self.prejdene_metre >= self.DRAHA:
             self.running_game = False
             Utils.ulozit_cas(cas_str, self.meno_hraca, self.map_name)  # Odoslanie času, mena a mapy
-            # Aktualizácia rekordu s novým časom, časovou pečiatkou a osobným rekordom
             timestamp = time.strftime("%Y-%m-%d %H:%M:%S")  # Lokálna časová pečiatka
-            self.update_record(cas_str, timestamp,
-                               Utils.osobny_rekord(self.meno_hraca, self.map_name))  # Fix: Pass new race time
+            self.update_record(cas_str, timestamp, Utils.osobny_rekord(self.meno_hraca, self.map_name))  # Fix: Pass new race time
+            if hasattr(self, 'ui') and self.ui:
+                self.ui.current_screen = Screen.END_GAME  # Prechod na koncovú obrazovku
 
         # Aktualizácia posunu cesty a typu terénu
         self.posun_cesty = self.prejdene_metre * self.sirka_useku - 160
@@ -92,7 +93,6 @@ class Game:
     def get_terrain_path(self):
         # Vytvorí zoznam obrázkov pre zobrazenie dráhy
         draha = []
-        
         teren_typy = [1] * 2000
 
         for i in range(self.terrain.miesto_narocneho_pasma - self.terrain.NAROCNE_PASMO_RANGE,
@@ -136,5 +136,7 @@ class Game:
         return draha
 
     def set_meno_hraca(self, meno):
-        # Metóda na aktualizáciu mena
-        self.meno_hraca = meno
+        self.meno_hraca = meno  # Metóda na aktualizáciu mena
+
+    def set_ui(self, ui):
+        self.ui = ui
