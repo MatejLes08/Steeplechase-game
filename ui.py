@@ -236,6 +236,25 @@ class UI:
                 self.osobny_rekord = "N/A"
                 self.celkovy_rekord = "N/A"
 
+        if not self.scores or self.game.get_map_name() != map_name:
+            # Načítanie nového rebríčka pre vybranú mapu
+            try:
+                response = requests.get(f"{Utils.SERVER_URL}/all-times?map={map_name}", timeout=2)
+                if response.status_code == 200:
+                    times = response.json().get("times", [])
+                    # Zoradiť časy od najrýchlejšieho
+                    sorted_times = sorted(times, key=Utils.extrahuj_cas_na_stotiny)
+                    self.scores = [(i + 1, entry.get("name") or "Anonymný hráč", entry["time"]) for i, entry in
+                                   enumerate(sorted_times)]
+                    # Aktualizácia osobného rekordu
+                    self.osobny_rekord = Utils.osobny_rekord(self.meno_hraca, map_name)
+                    # Aktualizácia celkového rekordu
+                    self.celkovy_rekord = Utils.najnizsi_cas(map_name)[0]
+            except requests.RequestException:
+                self.scores = []
+                self.osobny_rekord = "N/A"
+                self.celkovy_rekord = "N/A"
+
         if not self.scores:
             # Ak zatiaľ nemáme žiadne skóre, zobrazím placeholder text
             placeholder = self.font.render("Žiadne údaje", True, self.DARKGRAY)
@@ -245,6 +264,7 @@ class UI:
             for i, (rank, name, time_str) in enumerate(self.scores[:10]):
                 txt = f"{rank}. {name}: {time_str}"
                 self.screen.blit(self.font.render(txt, True, self.BLACK), (20, y0 + i * 30))
+
 
         # Zobrazenie osobného rekordu, posunuté nižšie pre väčší odstup
         osobny_text = f"Osobný rekord: {self.osobny_rekord}"
@@ -273,6 +293,7 @@ class UI:
             pygame.draw.rect(self.screen, self.DARKGRAY, (half + 20, 60, half - 40, 250), 2)
             error_text = self.font.render("Obrázok mapy nenájdený", True, self.BLACK)
             self.screen.blit(error_text, (half + 30, 150))
+
 
         # Tlačidlá Hrať a Späť v pravom bloku, tlačidlá < a >
         pygame.draw.rect(self.screen, self.GRAY, self.button_prev_map)
@@ -310,6 +331,7 @@ class UI:
         b = self.biomes[-1]
         return b["image"], b["image"], b["decoration"], b["decoration"], 0.0
 
+
     def get_current_biome_name(self, world_x):
         for i in range(len(self.biomes) - 1):
             if self.biomes[i]["x_start"] <= world_x < self.biomes[i + 1]["x_start"]:
@@ -318,6 +340,7 @@ class UI:
 
     def draw_energy(self, screen, font, value, x, y, width=150, height=30, green=(0, 255, 0), yellow=(255, 255, 0),
                     red=(255, 0, 0), black=(0, 0, 0)):
+
         # Funkcia na vykreslenie obdĺžnika s energiou
         value = max(0, min(100, value))
         bar_width = int((value / 100) * width)
@@ -458,6 +481,7 @@ class UI:
         # Terén
         if self.game:
             self.aktualna_draha = self.game.get_akt_draha()
+
 
         terrain_text = f"{self.aktualna_draha}"
         terrain_surf = self.font.render(terrain_text, True, self.BLACK)
@@ -723,6 +747,10 @@ class UI:
             osobny_stotiny = Utils.cas_na_stotiny(osobny) if osobny != "N/A" else float('inf')
             celkovy_stotiny = Utils.cas_na_stotiny(self.celkovy_rekord) if self.celkovy_rekord != "N/A" else float(
                 'inf')
+            # Nastaví osobný rekord na poskytnutý osobný rekord alebo nový čas, ak je lepší
+            if current_stotiny < osobny_stotiny:
+                osobny_stotiny = Utils.cas_na_stotiny(osobny) if osobny != "N/A" else float('inf')
+                celkovy_stotiny = Utils.cas_na_stotiny(self.celkovy_rekord) if self.celkovy_rekord != "N/A" else float('inf')
             # Nastaví osobný rekord na poskytnutý osobný rekord alebo nový čas, ak je lepší
             if current_stotiny < osobny_stotiny:
                 self.osobny_rekord = cas
