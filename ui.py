@@ -49,7 +49,7 @@ class UI:
         # Herné premenné (rýchlosť, energia, prejdená vzdialenosť, atď.)
         self.rychlost = 0
         self.energia = 100
-        self.neprejdenych = 0
+        self.neprejdenych = 2000
         self.aktualna_draha = ""
         self.stopky = "0:00:00"
         self.osobny_rekord = "N/A"  # Initialize personal best
@@ -106,6 +106,15 @@ class UI:
 
         # Inicializácia AudioManager
         self.audio_manager = AudioManager()
+
+        #premenne pre pozadie
+        self.dlzka_trate = len(self.draha) * self.game.sirka_useku
+
+        self.bg_image_original = pygame.image.load("assets/pozadie.png").convert()
+        self.scaled_bg_image = None  # bude sa vytvárať podľa veľkosti okna
+        self.bg_image_width = 0
+        self.update_scaled_background()
+
 
         # Mapovanie typu terénu na obrázok
         self.terrain_images = [
@@ -357,8 +366,39 @@ class UI:
 
         pygame.display.flip()
 
+    def update_scaled_background(self):
+        window_width, window_height = self.screen.get_size()
+        scale_ratio = window_height / 324  # originálna výška obrázka
+        new_width = int(1725 * scale_ratio)  # podľa originálu
+        new_height = window_height
+        self.bg_image_width = new_width
+        self.scaled_bg_image = pygame.transform.scale(self.bg_image_original, (new_width, new_height))
+
+
     def draw_ui(self):
-        self.screen.fill(self.ORANGE)
+        if self.scaled_bg_image is None or self.screen.get_size()[1] != self.scaled_bg_image.get_height():
+            self.update_scaled_background()
+
+        # === POZADIE ===
+        if self.scaled_bg_image:
+            window_width, window_height = self.screen.get_size()
+
+            
+            scroll_x = (2000 - int((self.neprejdenych / 2000) * 2200))+220
+            print(self.neprejdenych)
+            self.screen.blit(
+                self.scaled_bg_image,
+                (0, 0),
+                area=pygame.Rect(scroll_x, 0, window_width, window_height)
+            )
+        else:
+            self.screen.fill((0, 0, 0))
+
+
+
+            
+
+
 
         # --- ZÁKLADNÉ ROZMERY ---
         margin = 50
