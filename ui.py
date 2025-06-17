@@ -810,7 +810,7 @@ class UI:
     def reset(self):
         self.rychlost = 0
         self.energia = 100
-        self.neprejdenych = 0
+        self.neprejdenych = 2000
         self.stopky = "0:00.000"
         self.pretazenie = 0
         self.final_time = None
