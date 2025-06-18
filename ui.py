@@ -63,11 +63,8 @@ class UI:
         self.input_rect = pygame.Rect(self.width // 2 - 150, 180, 300, 40)
         self.active_input = False
 
-        # Tlačidlá v hre (zrušiť, spomaľ, pridať energiu, atď.)
-        self.button_cancel = pygame.Rect(32, self.height - 80, 150, 50)
-        self.button_decrease = pygame.Rect(216, self.height - 80, 150, 50)
-        self.button_increase = pygame.Rect(400, self.height - 80, 150, 50)
-        self.button_pause = pygame.Rect(584, self.height - 80, 150, 50)
+        # Tlačidlo na pauzu v ľavom hornom rohu
+        self.button_pause = pygame.Rect(32, 50 // 2, 50, 50)
 
         # Tlačidlá v hlavnom MENU
         self.button_start_menu = pygame.Rect(self.width // 2 - 100, 250, 200, 50)
@@ -118,7 +115,6 @@ class UI:
         self.scaled_bg_image = None  # bude sa vytvárať podľa veľkosti okna
         self.bg_image_width = 0
         self.update_scaled_background()
-
 
         # Mapovanie typu terénu na obrázok
         self.terrain_images = [
@@ -431,7 +427,6 @@ class UI:
         self.bg_image_width = new_width
         self.scaled_bg_image = pygame.transform.scale(self.bg_image_original, (new_width, new_height))
 
-
     def draw_ui(self):
         if self.scaled_bg_image is None or self.screen.get_size()[1] != self.scaled_bg_image.get_height():
             self.update_scaled_background()
@@ -439,10 +434,7 @@ class UI:
         # === POZADIE ===
         if self.scaled_bg_image:
             window_width, window_height = self.screen.get_size()
-
-            
             scroll_x = (2000 - int((self.neprejdenych / 2000) * 2200))+220
-            print(self.neprejdenych)
             self.screen.blit(
                 self.scaled_bg_image,
                 (0, 0),
@@ -450,12 +442,6 @@ class UI:
             )
         else:
             self.screen.fill((0, 0, 0))
-
-
-
-            
-
-
 
         # --- ZÁKLADNÉ ROZMERY ---
         margin = 50
@@ -525,7 +511,7 @@ class UI:
 
         # === TLAČIDLO PAUZA (hore vľavo) ===
         pygame.draw.rect(self.screen, self.GRAY, self.button_pause)
-        self.render_button_text("Pauza", self.button_pause)
+        self.render_button_text("||", self.button_pause)
 
         # === POSÚVAJÚCA SA CESTA ===
         if self.game:
@@ -545,13 +531,11 @@ class UI:
                         img_scaled = pygame.transform.scale(image, (sirka, 200))
                         self.screen.blit(img_scaled, (x_pozicia, 400))
 
-        # === TLAČIDLÁ ===
-        pygame.draw.rect(self.screen, self.RED, self.button_cancel)
-        pygame.draw.rect(self.screen, self.GRAY, self.button_decrease)
-        pygame.draw.rect(self.screen, self.GRAY, self.button_increase)
-        self.render_button_text("Zrušiť", self.button_cancel, color=self.BLACK)
-        self.render_button_text("Spomaľ", self.button_decrease, color=self.BLACK)
-        self.render_button_text("Pridaj", self.button_increase, color=self.BLACK)
+        # === POPIS OVLÁDANIA ===
+        control_text = "A - Spomaľ  D - Pridaj"
+        control_surf = self.font.render(control_text, True, self.BLACK)
+        control_rect = control_surf.get_rect(center=(self.width // 2, self.height - 30))
+        self.screen.blit(control_surf, control_rect)
 
         # === Hráč ===
         if self.horse:
@@ -577,10 +561,7 @@ class UI:
                 self.button_server = pygame.Rect(20, self.height - 70, 40, 40)
                 self.button_prev_map = pygame.Rect(mid_x + 140, 337, 60, 40)
                 self.button_next_map = pygame.Rect(mid_x + 210, 337, 60, 40)
-                self.button_cancel = pygame.Rect(32, self.height - 80, 150, 50)
-                self.button_decrease = pygame.Rect(216, self.height - 80, 150, 50)
-                self.button_increase = pygame.Rect(400, self.height - 80, 150, 50)
-                self.button_pause = pygame.Rect(584, self.height - 80, 150, 50)
+                self.button_pause = pygame.Rect(32, 50 // 2, 50, 50)
             if event.type == pygame.QUIT:
                 return False
 
@@ -659,16 +640,9 @@ class UI:
                     elif self.button_next_map.collidepoint(mouse_pos):
                         self.selected_map_index = (self.selected_map_index + 1) % len(self.biomes)
 
-                # GAME obrazovka: pôvodné tlačidlá v hre
+                # GAME obrazovka: tlačidlo pauza
                 elif self.current_screen == Screen.GAME:
-                    if self.button_cancel.collidepoint(mouse_pos):
-                        self.audio_manager.stop_music()
-                        return False
-                    elif self.button_decrease.collidepoint(mouse_pos) and self.spomal_callback:
-                        self.spomal_callback()
-                    elif self.button_increase.collidepoint(mouse_pos) and self.pridaj_callback:
-                        self.pridaj_callback()
-                    elif self.button_pause.collidepoint(mouse_pos):
+                    if self.button_pause.collidepoint(mouse_pos):
                         self.current_screen = Screen.PAUSE
                         self.audio_manager.pause_music()
                 elif self.current_screen == Screen.PAUSE:
@@ -695,55 +669,61 @@ class UI:
                             self.audio_manager.start_music()
                             self.game.running_game = False  # Čaká na spustenie "Pridaj"
 
-            # Spracovanie písania mena v MENU
-            if event.type == pygame.KEYDOWN and self.current_screen == Screen.MENU and self.active_input:
-                if event.key == pygame.K_RETURN and self.meno_input.strip():
-                    self.meno_hraca = self.meno_input.strip()
-                    # Zachované pre odosielanie mena
-                    if self.game:
-                        self.game.set_meno_hraca(self.meno_hraca)
-                    # Načítanie rebríčka zo servera a kontrola stavu servera
-                    map_json = self.biomes[self.selected_map_index]["map_json"]
-                    map_name = map_json.split('.')[0]
-                    try:
-                        response = requests.get(f"{Utils.SERVER_URL}/all-times?map={map_name}", timeout=2)
-                        if response.status_code == 200:
-                            times = response.json().get("times", [])
-                            # Zoradiť časy od najrýchlejšieho a filtrovať na najlepší čas pre každého hráča
-                            best_times = {}
-                            for entry in times:
-                                name = entry.get("name") or "Anonymný hráč"
-                                time_stotiny = Utils.extrahuj_cas_na_stotiny(entry)
-                                if name not in best_times or time_stotiny < Utils.extrahuj_cas_na_stotiny(
-                                        {"time": best_times[name]["time"]}):
-                                    best_times[name] = entry
-                            sorted_times = sorted(best_times.values(), key=Utils.extrahuj_cas_na_stotiny)
-                            # Vytvoriť zoznam tupľov (poradie, meno, čas)
-                            self.scores = [(i + 1, entry.get("name") or "Anonymný hráč", entry["time"]) for i, entry in
-                                           enumerate(sorted_times)]
-                            # Nájdenie hráčovho skóre (ak existuje)
-                            player_scores = [s for s in sorted_times if
-                                             s["name"].strip().lower() == self.meno_hraca.strip().lower()]
-                            self.my_score = player_scores[0] if player_scores else None
-                            self.osobny_rekord = player_scores[0]["time"] if player_scores else "N/A"
-                            self.celkovy_rekord = Utils.najnizsi_cas(map_name)[0]
-                        # Kontrola stavu servera
+            # Spracovanie písania mena v MENU a ovládania rýchlosti v GAME
+            if event.type == pygame.KEYDOWN:
+                if self.current_screen == Screen.MENU and self.active_input:
+                    if event.key == pygame.K_RETURN and self.meno_input.strip():
+                        self.meno_hraca = self.meno_input.strip()
+                        # Zachované pre odosielanie mena
+                        if self.game:
+                            self.game.set_meno_hraca(self.meno_hraca)
+                        # Načítanie rebríčka zo servera a kontrola stavu servera
+                        map_json = self.biomes[self.selected_map_index]["map_json"]
+                        map_name = map_json.split('.')[0]
                         try:
-                            server_response = requests.get(self.server_url, timeout=2)
-                            self.server_online = server_response.status_code == 200
+                            response = requests.get(f"{Utils.SERVER_URL}/all-times?map={map_name}", timeout=2)
+                            if response.status_code == 200:
+                                times = response.json().get("times", [])
+                                # Zoradiť časy od najrýchlejšieho a filtrovať na najlepší čas pre každého hráča
+                                best_times = {}
+                                for entry in times:
+                                    name = entry.get("name") or "Anonymný hráč"
+                                    time_stotiny = Utils.extrahuj_cas_na_stotiny(entry)
+                                    if name not in best_times or time_stotiny < Utils.extrahuj_cas_na_stotiny(
+                                            {"time": best_times[name]["time"]}):
+                                        best_times[name] = entry
+                                sorted_times = sorted(best_times.values(), key=Utils.extrahuj_cas_na_stotiny)
+                                # Vytvoriť zoznam tupľov (poradie, meno, čas)
+                                self.scores = [(i + 1, entry.get("name") or "Anonymný hráč", entry["time"]) for i, entry in
+                                               enumerate(sorted_times)]
+                                # Nájdenie hráčovho skóre (ak existuje)
+                                player_scores = [s for s in sorted_times if
+                                                 s["name"].strip().lower() == self.meno_hraca.strip().lower()]
+                                self.my_score = player_scores[0] if player_scores else None
+                                self.osobny_rekord = player_scores[0]["time"] if player_scores else "N/A"
+                                self.celkovy_rekord = Utils.najnizsi_cas(map_name)[0]
+                            # Kontrola stavu servera
+                            try:
+                                server_response = requests.get(self.server_url, timeout=2)
+                                self.server_online = server_response.status_code == 200
+                            except requests.RequestException:
+                                self.server_online = False
                         except requests.RequestException:
+                            self.scores = []
+                            self.my_score = None
+                            self.osobny_rekord = "N/A"
+                            self.celkovy_rekord = "N/A"
                             self.server_online = False
-                    except requests.RequestException:
-                        self.scores = []
-                        self.my_score = None
-                        self.osobny_rekord = "N/A"
-                        self.celkovy_rekord = "N/A"
-                        self.server_online = False
-                    self.current_screen = Screen.MAP_VIEW
-                elif event.key == pygame.K_BACKSPACE:
-                    self.meno_input = self.meno_input[:-1]
-                elif len(self.meno_input) < 20:
-                    self.meno_input += event.unicode
+                        self.current_screen = Screen.MAP_VIEW
+                    elif event.key == pygame.K_BACKSPACE:
+                        self.meno_input = self.meno_input[:-1]
+                    elif len(self.meno_input) < 20:
+                        self.meno_input += event.unicode
+                elif self.current_screen == Screen.GAME:
+                    if event.key == pygame.K_a and self.spomal_callback:
+                        self.spomal_callback()
+                    elif event.key == pygame.K_d and self.pridaj_callback:
+                        self.pridaj_callback()
 
         return True
 
