@@ -104,10 +104,10 @@ class UI:
         self.current_screen = Screen.MENU
 
         # Tlačidlá pre vyskakovacie okná (relatívne k oknu 500x400)
-        self.button_continue = pygame.Rect(175, 250, 150, 50)
-        self.button_back_to_menu = pygame.Rect(175, 320, 150, 50)
-        self.button_end_back_to_menu = pygame.Rect(175, 320, 150, 50)
-        self.button_try_again = pygame.Rect(175, 250, 150, 50)
+        self.button_continue = pygame.Rect(150, 150, 200, 50)
+        self.button_back_to_menu = pygame.Rect(150, 250, 200, 50)
+        self.button_end_back_to_menu = pygame.Rect(175, 320, 200, 50)
+        self.button_try_again = pygame.Rect(175, 250, 200, 50)
 
         self.audio_manager = AudioManager()
 
@@ -439,9 +439,7 @@ class UI:
         # === POZADIE ===
         if self.scaled_bg_image:
             window_width, window_height = self.screen.get_size()
-
-            
-            scroll_x = (2000 - int((self.neprejdenych / 2000) * 2200))+220
+            scroll_x = (2000 - int((self.neprejdenych / 2000) * 2200)) + 220
             print(self.neprejdenych)
             self.screen.blit(
                 self.scaled_bg_image,
@@ -450,12 +448,6 @@ class UI:
             )
         else:
             self.screen.fill((0, 0, 0))
-
-
-
-            
-
-
 
         # --- ZÁKLADNÉ ROZMERY ---
         margin = 50
@@ -481,8 +473,12 @@ class UI:
         stamina_rect = stamina_surf.get_rect(center=(bar_x + bar_w // 2, bar_y + bar_h // 2))
         self.screen.blit(stamina_surf, stamina_rect)
 
-        # Preťaženie vedľa baru
-        pretazenie_text = f"{self.pretazenie}%/s"
+        # Preťaženie vedľa baru s 2 desatinnými miestami a povinným +/- indikátorom
+        pretazenie_text = f"{abs(self.pretazenie):.2f} %/s"
+        if self.game and self.rychlost > 12 and "napájadlo" not in self.game.get_akt_draha().lower():
+            pretazenie_text = f"-{pretazenie_text}"
+        elif self.rychlost <= 12 or "napájadlo" in self.game.get_akt_draha().lower():
+            pretazenie_text = f"+{pretazenie_text}"
         pretazenie_surf = self.font.render(pretazenie_text, True, self.BLACK)
         self.screen.blit(pretazenie_surf, (bar_x + bar_w + 20, bar_y))
 
