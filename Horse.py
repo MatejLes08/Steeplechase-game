@@ -24,7 +24,7 @@ class Horse:
         self.animation_speed = 0.1
         self.current_image = self.statie[0]
         self.position_x = 70
-        self.position_y = 450
+        self.position_y = 580
 
     def nacitaj_sprite_sheet(self, path, frame_width):
         sheet = pygame.image.load(path)

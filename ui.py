@@ -103,8 +103,8 @@ class UI:
         # Tlačidlá pre vyskakovacie okná (relatívne k oknu 500x400)
         self.button_continue = pygame.Rect(150, 150, 200, 50)
         self.button_back_to_menu = pygame.Rect(150, 250, 200, 50)
-        self.button_end_back_to_menu = pygame.Rect(175, 320, 200, 50)
-        self.button_try_again = pygame.Rect(175, 250, 200, 50)
+        self.button_end_back_to_menu = pygame.Rect(150, 320, 200, 50)
+        self.button_try_again = pygame.Rect(150, 250, 200, 50)
 
         self.audio_manager = AudioManager()
 
@@ -534,7 +534,7 @@ class UI:
                         image = self.terrain_images[image_index]
                         x_pozicia = i * sirka + self.offset
                         img_scaled = pygame.transform.scale(image, (sirka, 200))
-                        self.screen.blit(img_scaled, (x_pozicia, 400))
+                        self.screen.blit(img_scaled, (x_pozicia, 530))
 
         # === POPIS OVLÁDANIA ===
         control_text = "A - Spomaľ  D - Pridaj"
